@@ -437,10 +437,15 @@ static int sprd_pcm_open(struct snd_soc_component *component,
 		substream->stream);
 	if (ret)
 		goto err;
+	/* ALSA clears mmap buffers up to PAGE_ALIGN(dma_bytes). ROC1's
+	 * 0x1e00-byte IRAM region shares its last page with a DMA link list.
+	 * Expose only whole pages so neither clearing nor mmap reaches it.
+	 */
 	runtime->hw.buffer_bytes_max = min_t(size_t,
-		runtime->hw.buffer_bytes_max, substream->dma_buffer.bytes);
+		runtime->hw.buffer_bytes_max,
+		round_down(substream->dma_buffer.bytes, PAGE_SIZE));
 	runtime->hw.period_bytes_max = min_t(size_t,
-		runtime->hw.period_bytes_max, substream->dma_buffer.bytes);
+		runtime->hw.period_bytes_max, runtime->hw.buffer_bytes_max);
 	ret = -ENOMEM;
 	rtd->dma_cfg_array = devm_kzalloc(dev, hw_chan * ((
 		runtime->hw.periods_max * sizeof(struct scatterlist))
@@ -1041,7 +1046,7 @@ static int sprd_pcm_hw_params(struct snd_soc_component *component,
 	 * Reject before publishing dma_bytes or programming DMA descriptors.
 	 */
 	if (!substream->dma_buffer.area ||
-	    totsize > substream->dma_buffer.bytes ||
+	    totsize > round_down(substream->dma_buffer.bytes, PAGE_SIZE) ||
 	    params_periods(params) > runtime->hw.periods_max)
 		return -EINVAL;
 
@@ -1407,7 +1412,7 @@ static int sprd_pcm_mmap(struct snd_soc_component *component,
 	struct snd_pcm_runtime *runtime = substream->runtime;
 
 	if (vma->vm_end - vma->vm_start >
-	    PAGE_ALIGN(substream->dma_buffer.bytes))
+	    round_down(substream->dma_buffer.bytes, PAGE_SIZE))
 		return -EINVAL;
 	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
 
