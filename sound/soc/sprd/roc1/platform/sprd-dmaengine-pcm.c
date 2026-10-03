@@ -383,9 +383,12 @@ static int sprd_pcm_open(struct snd_soc_component *component,
 		rtd->dma_cfg_phy[0], size_inout, 1);
 	if (!rtd->dma_cfg_virt[0]) {
 		pr_err(" ioremap_nocache failed for rtd->dma_cfg_virt[0]");
+		ret = -ENOMEM;
 		goto err;
 	}
 	memset_io(rtd->dma_cfg_virt[0], 0, size_inout);
+	runtime->hw.periods_max = min_t(unsigned int,
+		runtime->hw.periods_max, size_inout / sizeof(struct sprd_dma_cfg));
 	size_inout = runtime->hw.periods_max *
 		sizeof(struct sprd_dma_cfg);
 	if (asoc_rtd_to_cpu(srtd, 0)->id == FE_DAI_ID_NORMAL_AP01 &&
@@ -396,6 +399,7 @@ static int sprd_pcm_open(struct snd_soc_component *component,
 				&size_inout);
 		if (!rtd->dma_cfg_phy[1]) {
 			pr_err("audio_smem_alloc failed for rtd->dma_cfg_phy[1]");
+			ret = -ENOMEM;
 			goto err;
 		}
 	} else {
@@ -403,6 +407,7 @@ static int sprd_pcm_open(struct snd_soc_component *component,
 			audio_mem_alloc(DDR32, &size_inout);
 		if (!rtd->dma_cfg_phy[1]) {
 			pr_err("audio_smem_alloc failed for rtd->dma_cfg_phy[1]");
+			ret = -ENOMEM;
 			goto err;
 		}
 	}
@@ -410,9 +415,12 @@ static int sprd_pcm_open(struct snd_soc_component *component,
 		rtd->dma_cfg_phy[1], size_inout, 1);
 	if (!rtd->dma_cfg_virt[1]) {
 		pr_err("ioremap_nocache failed for rtd->dma_cfg_virt[1]");
+		ret = -ENOMEM;
 		goto err;
 	}
-	memset_io(rtd->dma_cfg_virt[0], 0, size_inout);
+	memset_io(rtd->dma_cfg_virt[1], 0, size_inout);
+	runtime->hw.periods_max = min_t(unsigned int,
+		runtime->hw.periods_max, size_inout / sizeof(struct sprd_dma_cfg));
 	pr_info("rtd->dma_cfg_virt[0] =%#lx, rtd->dma_cfg_phy[0] =%#lx,",
 		(unsigned long)rtd->dma_cfg_virt[0],
 		(unsigned long)rtd->dma_cfg_phy[0]);
@@ -427,6 +435,13 @@ static int sprd_pcm_open(struct snd_soc_component *component,
 	/*pmc dma data*/
 	ret = sprd_pcm_preallocate_dma_ddr32_buffer(pcm,
 		substream->stream);
+	if (ret)
+		goto err;
+	runtime->hw.buffer_bytes_max = min_t(size_t,
+		runtime->hw.buffer_bytes_max, substream->dma_buffer.bytes);
+	runtime->hw.period_bytes_max = min_t(size_t,
+		runtime->hw.period_bytes_max, substream->dma_buffer.bytes);
+	ret = -ENOMEM;
 	rtd->dma_cfg_array = devm_kzalloc(dev, hw_chan * ((
 		runtime->hw.periods_max * sizeof(struct scatterlist))
 		+ sizeof(struct sprd_dma_cfg)), GFP_KERNEL);
@@ -459,6 +474,11 @@ err:
 		agdsp_access_disable();
 		rtd->is_access_enabled = false;
 	}
+	if (!sprd_is_normal_playback(asoc_rtd_to_cpu(srtd, 0)->id,
+				     substream->stream))
+		pm_dma->no_pm_cnt--;
+	else
+		pm_dma->normal_rtd = NULL;
 	mutex_unlock(&pm_dma->pm_mtx_cnt);
 	if (rtd->dma_cfg_array) {
 		devm_kfree(dev, rtd->dma_cfg_array);
@@ -525,6 +545,7 @@ err:
 		}
 	}
 	devm_kfree(dev, rtd);
+	runtime->private_data = NULL;
 out:
 	return ret;
 }
@@ -1016,6 +1037,14 @@ static int sprd_pcm_hw_params(struct snd_soc_component *component,
 	if (!dma_data)
 		goto no_dma;
 
+	/* Fixed IRAM capture buffers can be smaller than the DDR limits.
+	 * Reject before publishing dma_bytes or programming DMA descriptors.
+	 */
+	if (!substream->dma_buffer.area ||
+	    totsize > substream->dma_buffer.bytes ||
+	    params_periods(params) > runtime->hw.periods_max)
+		return -EINVAL;
+
 	ch_cnt = params_channels(params);
 	if (dma_data->use_mcdt == 1)
 		ch_cnt = 1;
@@ -1377,6 +1406,9 @@ static int sprd_pcm_mmap(struct snd_soc_component *component,
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
 
+	if (vma->vm_end - vma->vm_start >
+	    PAGE_ALIGN(substream->dma_buffer.bytes))
+		return -EINVAL;
 	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
 
 	return remap_pfn_range(vma, vma->vm_start,
@@ -1433,6 +1465,7 @@ static int sprd_pcm_preallocate_dma_ddr32_buffer(struct snd_pcm *pcm,
 			audio_mem_free(IRAM_NORMAL_C_DATA, buf->addr, 0);
 		else
 			audio_mem_free(DDR32, buf->addr, size);
+		buf->addr = 0;
 		return -ENOMEM;
 	}
 

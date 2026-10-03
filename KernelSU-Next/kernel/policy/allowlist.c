@@ -451,7 +451,22 @@ static void do_persistent_allow_list(struct callback_head *_cb)
     loff_t off = 0;
     int i;
 
-    const struct cred *saved = override_creds(ksu_cred);
+    const struct cred *saved;
+    struct cred *io_cred = NULL;
+
+    /* Android 9 fscrypt v1 searches process keyrings. This callback runs
+     * on init, whose current credentials carry vold's installed keys;
+     * ksu_cred was captured before those keyrings existed.
+     */
+    if (IS_ENABLED(CONFIG_KSU_C8PRO_DIAGNOSTIC)) {
+        io_cred = prepare_creds();
+        if (!io_cred) {
+            kfree(_cb);
+            return;
+        }
+        setup_selinux(KERNEL_SU_CONTEXT, io_cred);
+    }
+    saved = override_creds(io_cred ? io_cred : ksu_cred);
     struct file *fp =
         filp_open(KERNEL_SU_ALLOWLIST, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (IS_ERR(fp)) {
@@ -493,9 +508,13 @@ static void do_persistent_allow_list(struct callback_head *_cb)
     mutex_unlock(&allowlist_mutex);
 
 close_file:
+    if (vfs_fsync(fp, 0))
+        pr_err("save_allow_list fsync failed\n");
     filp_close(fp, 0);
 out:
     revert_creds(saved);
+    if (io_cred)
+        put_cred(io_cred);
     kfree(_cb);
 }
 

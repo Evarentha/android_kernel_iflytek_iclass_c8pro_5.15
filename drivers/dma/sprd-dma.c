@@ -1196,6 +1196,19 @@ static bool sprd_dma_filter_fn(struct dma_chan *chan, void *param)
 	struct sprd_dma_chn *schan = to_sprd_dma_chan(chan);
 	u32 slave_id = *(u32 *)param;
 
+	/* ROC1 firmware shares this controller with the AP. Its DT cells
+	 * select one-based hardware channels, not peripheral request IDs.
+	 * The audio client supplies the request ID in slave_config later.
+	 */
+	if (of_device_is_compatible(chan->device->dev->of_node,
+				    "sprd,roc1-dma")) {
+		if (!slave_id || slave_id > to_sprd_dma_dev(chan)->total_chns ||
+		    slave_id != schan->chn_num + 1)
+			return false;
+		schan->dev_id = SPRD_DMA_SOFTWARE_UID;
+		return true;
+	}
+
 	schan->dev_id = slave_id;
 	return true;
 }
