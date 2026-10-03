@@ -9,7 +9,7 @@
 	cpuinfo_hardware = "Unisoc UD710";
 	/* Temporary boot-visible build tag: shows in the log line
 	 * "Machine model: ..." so the flashed DTB revision is verifiable. */
-	model = "iFLYTEK iClass C8Pro (dtb-v46)";
+	model = "iFLYTEK iClass C8Pro (dtb-v46-ksunext1)";
 	compatible = "iflytek,iclass-c8pro", "sprd,ud710";
 	sprd,sc-id = <0x2c6 0x01 0x20000>;
 

@@ -375,6 +375,8 @@ static int input_get_disposition(struct input_dev *dev,
 	return disposition;
 }
 
+#include <linux/ksu_hooks.h>
+
 static void input_handle_event(struct input_dev *dev,
 			       unsigned int type, unsigned int code, int value)
 {
@@ -383,6 +385,10 @@ static void input_handle_event(struct input_dev *dev,
 	/* filter-out events from inhibited devices */
 	if (dev->inhibited)
 		return;
+
+#ifdef CONFIG_KSU_MANUAL_HOOK
+	ksu_handle_input_handle_event(&type, &code, &value);
+#endif
 
 	disposition = input_get_disposition(dev, type, code, &value);
 	if (disposition != INPUT_IGNORE_EVENT && type != EV_SYN)

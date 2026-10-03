@@ -640,6 +640,8 @@ static void sprd_fs_debug_check_data(struct file *filep, char __user *buf, size_
 }
 #endif
 
+#include <linux/ksu_hooks.h>
+
 ssize_t ksys_read(unsigned int fd, char __user *buf, size_t count)
 {
 	struct fd f = fdget_pos(fd);
@@ -671,6 +673,9 @@ ssize_t ksys_read(unsigned int fd, char __user *buf, size_t count)
 
 SYSCALL_DEFINE3(read, unsigned int, fd, char __user *, buf, size_t, count)
 {
+#ifdef CONFIG_KSU_MANUAL_HOOK
+	ksu_handle_sys_read(fd);
+#endif
 	return ksys_read(fd, buf, count);
 }
 
