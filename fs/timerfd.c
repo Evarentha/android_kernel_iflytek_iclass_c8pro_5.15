@@ -49,10 +49,35 @@ struct timerfd_ctx {
 static LIST_HEAD(cancel_list);
 static DEFINE_SPINLOCK(cancel_lock);
 
+/* Keep the most recent vendor alarm fd per clock alive through shutdown. */
+static DEFINE_MUTEX(poweroff_lock);
+static struct file *poweroff_files[3];
+
+static bool is_poweroff_clock(int clockid)
+{
+	return clockid >= CLOCK_POWEROFF_WAKE && clockid <= CLOCK_POWEROFF_ALARM;
+}
+
+static enum alarmtimer_type timerfd_clock2alarm(int clockid)
+{
+	switch (clockid) {
+	case CLOCK_REALTIME_ALARM:
+		return ALARM_REALTIME;
+	case CLOCK_POWEROFF_WAKE:
+		return ALARM_POWEROFF;
+	case CLOCK_POWERON_WAKE:
+		return ALARM_POWERON;
+	case CLOCK_POWEROFF_ALARM:
+		return ALARM_POWEROFF_ALARM;
+	default:
+		return ALARM_BOOTTIME;
+	}
+}
+
 static inline bool isalarm(struct timerfd_ctx *ctx)
 {
 	return ctx->clockid == CLOCK_REALTIME_ALARM ||
-		ctx->clockid == CLOCK_BOOTTIME_ALARM;
+		ctx->clockid == CLOCK_BOOTTIME_ALARM || is_poweroff_clock(ctx->clockid);
 }
 
 /*
@@ -160,7 +185,7 @@ static void timerfd_setup_cancel(struct timerfd_ctx *ctx, int flags)
 {
 	spin_lock(&ctx->cancel_lock);
 	if ((ctx->clockid == CLOCK_REALTIME ||
-	     ctx->clockid == CLOCK_REALTIME_ALARM) &&
+	     ctx->clockid == CLOCK_REALTIME_ALARM || is_poweroff_clock(ctx->clockid)) &&
 	    (flags & TFD_TIMER_ABSTIME) && (flags & TFD_TIMER_CANCEL_ON_SET)) {
 		if (!ctx->might_cancel) {
 			ctx->might_cancel = true;
@@ -203,8 +228,7 @@ static int timerfd_setup(struct timerfd_ctx *ctx, int flags,
 
 	if (isalarm(ctx)) {
 		alarm_init(&ctx->t.alarm,
-			   ctx->clockid == CLOCK_REALTIME_ALARM ?
-			   ALARM_REALTIME : ALARM_BOOTTIME,
+			   timerfd_clock2alarm(ctx->clockid),
 			   timerfd_alarmproc);
 	} else {
 		hrtimer_init(&ctx->t.tmr, clockid, htmode);
@@ -417,11 +441,11 @@ SYSCALL_DEFINE2(timerfd_create, int, clockid, int, flags)
 	     clockid != CLOCK_REALTIME &&
 	     clockid != CLOCK_REALTIME_ALARM &&
 	     clockid != CLOCK_BOOTTIME &&
-	     clockid != CLOCK_BOOTTIME_ALARM))
+	     clockid != CLOCK_BOOTTIME_ALARM && !is_poweroff_clock(clockid)))
 		return -EINVAL;
 
 	if ((clockid == CLOCK_REALTIME_ALARM ||
-	     clockid == CLOCK_BOOTTIME_ALARM) &&
+	     clockid == CLOCK_BOOTTIME_ALARM || is_poweroff_clock(clockid)) &&
 	    !capable(CAP_WAKE_ALARM))
 		return -EPERM;
 
@@ -435,8 +459,7 @@ SYSCALL_DEFINE2(timerfd_create, int, clockid, int, flags)
 
 	if (isalarm(ctx))
 		alarm_init(&ctx->t.alarm,
-			   ctx->clockid == CLOCK_REALTIME_ALARM ?
-			   ALARM_REALTIME : ALARM_BOOTTIME,
+			   timerfd_clock2alarm(ctx->clockid),
 			   timerfd_alarmproc);
 	else
 		hrtimer_init(&ctx->t.tmr, clockid, HRTIMER_MODE_ABS);
@@ -447,6 +470,22 @@ SYSCALL_DEFINE2(timerfd_create, int, clockid, int, flags)
 			       O_RDWR | (flags & TFD_SHARED_FCNTL_FLAGS));
 	if (ufd < 0)
 		kfree(ctx);
+	else if (is_poweroff_clock(clockid)) {
+		struct file *file = fget(ufd), *old;
+
+		/* Unlike the old BSP's unbounded fget, retain at most three files. */
+		if (file) {
+			mutex_lock(&poweroff_lock);
+			old = poweroff_files[clockid - CLOCK_POWEROFF_WAKE];
+			poweroff_files[clockid - CLOCK_POWEROFF_WAKE] = file;
+			mutex_unlock(&poweroff_lock);
+			if (old)
+				fput(old);
+		}
+		if (IS_ENABLED(CONFIG_MITOCHODRIA_C8PRO_USER_DIAG))
+			pr_info("C8DIAG timerfd vendor clock=%d fd=%d pid=%d\n",
+				clockid, ufd, task_pid_nr(current));
+	}
 
 	return ufd;
 }

@@ -281,6 +281,59 @@ struct regmap *syscon_regmap_lookup_by_phandle_optional(struct device_node *np,
 }
 EXPORT_SYMBOL_GPL(syscon_regmap_lookup_by_phandle_optional);
 
+/* Legacy Unisoc DTs describe named register fields in a syscons array. */
+static int syscon_parse_by_name(struct device_node *np, const char *name,
+				struct of_phandle_args *args)
+{
+	int index = 0;
+
+	if (name) {
+		index = of_property_match_string(np, "syscon-names", name);
+		if (index < 0)
+			return index;
+	}
+
+	return of_parse_phandle_with_args(np, "syscons", "#syscon-cells",
+					  index, args);
+}
+
+struct regmap *syscon_regmap_lookup_by_name(struct device_node *np,
+					   const char *name)
+{
+	struct of_phandle_args args;
+	struct regmap *map;
+	int ret;
+
+	ret = syscon_parse_by_name(np, name, &args);
+	if (ret)
+		return ERR_PTR(ret);
+
+	map = syscon_node_to_regmap(args.np);
+	of_node_put(args.np);
+	return map;
+}
+EXPORT_SYMBOL_GPL(syscon_regmap_lookup_by_name);
+
+int syscon_get_args_by_name(struct device_node *np, const char *name,
+			    int arg_count, unsigned int *out_args)
+{
+	struct of_phandle_args args;
+	int ret;
+
+	if (arg_count < 0 || (arg_count && !out_args))
+		return -EINVAL;
+
+	ret = syscon_parse_by_name(np, name, &args);
+	if (ret)
+		return ret;
+
+	arg_count = min(arg_count, args.args_count);
+	memcpy(out_args, args.args, arg_count * sizeof(*out_args));
+	of_node_put(args.np);
+	return arg_count;
+}
+EXPORT_SYMBOL_GPL(syscon_get_args_by_name);
+
 static int syscon_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;

@@ -64,6 +64,7 @@
 #include <linux/page_ext.h>
 #include <linux/debug_locks.h>
 #include <linux/debugobjects.h>
+#include <generated/utsrelease.h>
 #include <linux/lockdep.h>
 #include <linux/kmemleak.h>
 #include <linux/padata.h>
@@ -971,6 +972,7 @@ asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
 	page_alloc_init();
 
 	pr_notice("Kernel command line: %s\n", saved_command_line);
+	pr_notice("LinearTeam Mitochodria Kernel/%s\n", UTS_RELEASE);
 	/* parameters may set static keys */
 	jump_label_init();
 	parse_early_param();

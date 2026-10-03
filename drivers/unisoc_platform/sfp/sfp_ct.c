@@ -24,7 +24,7 @@ int sfp_sync_with_nfl_ct(const struct nf_conntrack_tuple *tuple)
 {
 	struct nf_conntrack_tuple_hash *h;
 	struct nf_conn *ct;
-	struct nf_conntrack_zone zone;
+	struct nf_conntrack_zone zone = { };
 
 	h = nf_conntrack_find_get(&init_net, &zone, tuple);
 	if (!h)

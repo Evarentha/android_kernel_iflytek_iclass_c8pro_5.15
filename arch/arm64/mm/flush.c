@@ -78,6 +78,13 @@ EXPORT_SYMBOL(flush_dcache_page);
  */
 EXPORT_SYMBOL(caches_clean_inval_pou);
 
+#ifdef CONFIG_MITOCHODRIA_PVR_CACHE_API
+/* Rogue DDK operates on CPU physical RAM ranges, not DMA mappings. */
+EXPORT_SYMBOL_GPL(dcache_clean_inval_poc);
+EXPORT_SYMBOL_GPL(dcache_clean_poc);
+EXPORT_SYMBOL_GPL(dcache_inval_poc);
+#endif
+
 #ifdef CONFIG_ARCH_HAS_PMEM_API
 void arch_wb_cache_pmem(void *addr, size_t size)
 {

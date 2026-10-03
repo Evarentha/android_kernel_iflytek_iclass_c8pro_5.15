@@ -871,6 +871,11 @@ static const struct sprd_dsi_ops qogirn6pro_dsi = {
 };
 
 static const struct of_device_id dsi_match_table[] = {
+	{ .compatible = "sprd,roc1-dsi-host",
+	  .data = &(const struct sprd_dsi_ops) {
+		.core = &dsi_ctrl_r1p0_ops,
+		.glb = &roc1_dsi_glb_ops,
+	  } },
 	{ .compatible = "sprd,sharkle-dsi-host",
 	  .data = &sharkle_dsi },
 	{ .compatible = "sprd,pike2-dsi-host",

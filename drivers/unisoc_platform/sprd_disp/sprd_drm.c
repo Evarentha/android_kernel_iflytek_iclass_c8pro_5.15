@@ -10,6 +10,8 @@
 #include <linux/of_graph.h>
 #include <linux/of_platform.h>
 #include <linux/of_reserved_mem.h>
+#include <linux/compat.h>
+#include <linux/uaccess.h>
 
 #include <drm/drm_atomic_helper.h>
 #include <drm/drm_crtc_helper.h>
@@ -218,7 +220,7 @@ static void sprd_drm_mode_config_init(struct drm_device *drm)
 	drm->mode_config.min_height = 0;
 	drm->mode_config.max_width = 8192;
 	drm->mode_config.max_height = 8192;
-	drm->mode_config.allow_fb_modifiers = false;
+	/* drm_universal_plane_init enables modifiers from each plane's list. */
 
 	drm->mode_config.funcs = &sprd_drm_mode_config_funcs;
 }
@@ -230,14 +232,118 @@ static const struct drm_ioctl_desc sprd_ioctls[] = {
 			sprd_gsp_trigger_ioctl, 0),
 };
 
+/* Factory 4.14 GSP envelopes; r7p0 payload layouts are unchanged. */
+struct sprd_gsp_legacy_cap64 {
+	__u32 size;
+	__u64 cap;
+};
+
+struct sprd_gsp_legacy_cfg64 {
+	__u8 async;
+	__u32 size;
+	__u32 num;
+	__u8 split;
+	__u64 config;
+};
+
+struct sprd_gsp_legacy_cap32 {
+	__u32 size;
+	__u32 cap;
+};
+
+struct sprd_gsp_legacy_cfg32 {
+	__u8 async;
+	__u32 size;
+	__u32 num;
+	__u8 split;
+	__u32 config;
+};
+
+#define SPRD_GSP_LEGACY_CAP64 DRM_IOWR(0x40, struct sprd_gsp_legacy_cap64)
+#define SPRD_GSP_LEGACY_CFG64 DRM_IOWR(0x41, struct sprd_gsp_legacy_cfg64)
+#define SPRD_GSP_LEGACY_CAP32 DRM_IOWR(0x40, struct sprd_gsp_legacy_cap32)
+#define SPRD_GSP_LEGACY_CFG32 DRM_IOWR(0x41, struct sprd_gsp_legacy_cfg32)
+
+static long sprd_drm_ioctl_common(struct file *file, unsigned int cmd,
+				  unsigned long arg, bool compat)
+{
+	struct drm_gsp_capability cap = { 0 };
+	struct drm_gsp_cfg_user cfg = { 0 };
+	void __user *up = compat ? compat_ptr(arg) : (void __user *)arg;
+	long ret;
+
+	if (!compat && cmd == SPRD_GSP_LEGACY_CAP64) {
+		struct sprd_gsp_legacy_cap64 old;
+
+		if (copy_from_user(&old, up, sizeof(old)))
+			return -EFAULT;
+		cap.size = old.size;
+		cap.cap = u64_to_user_ptr(old.cap);
+	} else if (compat && cmd == SPRD_GSP_LEGACY_CAP32) {
+		struct sprd_gsp_legacy_cap32 old;
+
+		if (copy_from_user(&old, up, sizeof(old)))
+			return -EFAULT;
+		cap.size = old.size;
+		cap.cap = compat_ptr(old.cap);
+	} else if (!compat && cmd == SPRD_GSP_LEGACY_CFG64) {
+		struct sprd_gsp_legacy_cfg64 old;
+
+		if (copy_from_user(&old, up, sizeof(old)))
+			return -EFAULT;
+		cfg.async = old.async;
+		cfg.size = old.size;
+		cfg.num = old.num;
+		cfg.split = old.split;
+		cfg.config = u64_to_user_ptr(old.config);
+	} else if (compat && cmd == SPRD_GSP_LEGACY_CFG32) {
+		struct sprd_gsp_legacy_cfg32 old;
+
+		if (copy_from_user(&old, up, sizeof(old)))
+			return -EFAULT;
+		cfg.async = old.async;
+		cfg.size = old.size;
+		cfg.num = old.num;
+		cfg.split = old.split;
+		cfg.config = compat_ptr(old.config);
+	} else {
+		return compat ? drm_compat_ioctl(file, cmd, arg) :
+				drm_ioctl(file, cmd, arg);
+	}
+
+	/* Keep the DRM permission and unplug checks; handlers do not alter envelopes. */
+	if (DRM_IOCTL_NR(cmd) == 0x40)
+		ret = drm_ioctl_kernel(file, sprd_gsp_get_capability_ioctl, &cap, 0);
+	else
+		ret = drm_ioctl_kernel(file, sprd_gsp_trigger_ioctl, &cfg, 0);
+	if (IS_ENABLED(CONFIG_MITOCHODRIA_C8PRO_USER_DIAG))
+		pr_info_ratelimited("C8DIAG gsp-legacy cmd=%x compat=%d size=%u ret=%ld\n",
+				    cmd, compat, DRM_IOCTL_NR(cmd) == 0x40 ?
+				    cap.size : cfg.size, ret);
+	return ret;
+}
+
+static long sprd_drm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+{
+	return sprd_drm_ioctl_common(file, cmd, arg, false);
+}
+
+#ifdef CONFIG_COMPAT
+static long sprd_drm_compat_ioctl(struct file *file, unsigned int cmd,
+				 unsigned long arg)
+{
+	return sprd_drm_ioctl_common(file, cmd, arg, true);
+}
+#endif
+
 static const struct file_operations sprd_drm_fops = {
 	.owner		= THIS_MODULE,
 	.open		= drm_open,
 	.release	= drm_release,
-	.unlocked_ioctl	= drm_ioctl,
-// #ifdef CONFIG_COMPAT
-// 	.compat_ioctl	= sprd_compat_ioctl,
-// #endif
+	.unlocked_ioctl	= sprd_drm_ioctl,
+#ifdef CONFIG_COMPAT
+	.compat_ioctl	= sprd_drm_compat_ioctl,
+#endif
 	.poll		= drm_poll,
 	.read		= drm_read,
 	.llseek		= no_llseek,

@@ -20,6 +20,7 @@
 
 #include <linux/module.h>
 #include <linux/init.h>
+#include <linux/of.h>
 #include <linux/syscore_ops.h>
 #include <linux/sched/clock.h>
 #include <linux/timekeeping.h>
@@ -33,6 +34,8 @@
 #undef pr_fmt
 #endif
 #define pr_fmt(fmt) "sprd-trusty-pm: " fmt
+
+static bool c8pro_legacy_cpu_pm;
 
 /*
  * This call synchronizes linux boot time to trusty OS by calling two SMC
@@ -87,7 +90,16 @@ static struct syscore_ops trusty_pm_ops = {
 
 static void trusty_resident_on_cpu(void *data, int cpu, bool *resident)
 {
-	*resident = !trusty_fast_call32(NULL, SMC_FC_CPU_CAN_DOWN, cpu, 0, 0);
+	s32 ret;
+
+	/* Factory C8Pro firmware returns a status, not a boolean permission. */
+	if (c8pro_legacy_cpu_pm) {
+		ret = trusty_fast_call32_power(SMC_FC_CPU_CAN_DOWN, cpu, 0, 0);
+		*resident = ret < 0;
+	} else {
+		ret = trusty_fast_call32(NULL, SMC_FC_CPU_CAN_DOWN, cpu, 0, 0);
+		*resident = !ret;
+	}
 }
 
 static void trusty_check_cpu_suspend(void *data, u32 state, bool *deny)
@@ -97,6 +109,10 @@ static void trusty_check_cpu_suspend(void *data, u32 state, bool *deny)
 
 static int __init trusty_pm_init(void)
 {
+	c8pro_legacy_cpu_pm = of_machine_is_compatible("iflytek,iclass-c8pro");
+	if (c8pro_legacy_cpu_pm)
+		pr_info("C8PM factory CPU_CAN_DOWN status ABI: negative denies\n");
+
 	/* Fist time sync on boot up */
 	trusty_sync_boot_time();
 

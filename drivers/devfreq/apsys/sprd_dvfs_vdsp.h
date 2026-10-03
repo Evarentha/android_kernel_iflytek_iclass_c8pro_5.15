@@ -120,5 +120,6 @@ struct sprd_vdsp_dvfs_ops {
 };
 
 extern const struct vdsp_dvfs_ops sharkl5pro_vdsp_dvfs_ops;
+extern const struct vdsp_dvfs_ops roc1_vdsp_dvfs_ops;
 
 #endif /* __SPRD_DVFS_VDSP_H__ */

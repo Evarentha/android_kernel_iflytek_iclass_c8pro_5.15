@@ -115,9 +115,11 @@ obj-$(CONFIG_PPS)		+= pps/
 obj-y				+= ptp/
 obj-$(CONFIG_W1)		+= w1/
 obj-y				+= power/
-obj-y				+= moto_ko/moto_mm/
-obj-y				+= moto_ko/moto_swap/
-obj-y                          += moto_ko/moto_mmap_fault/
+# The moto external modules only build against the 4.14 mm/memcg internals
+# they were written for; gate them behind a config so the default build works.
+obj-$(CONFIG_MOTO_KO)			+= moto_ko/moto_mm/
+obj-$(CONFIG_MOTO_KO)			+= moto_ko/moto_swap/
+obj-$(CONFIG_MOTO_KO)			+= moto_ko/moto_mmap_fault/
 obj-$(CONFIG_HWMON)		+= hwmon/
 obj-$(CONFIG_THERMAL)		+= thermal/
 obj-$(CONFIG_WATCHDOG)		+= watchdog/
@@ -191,6 +193,7 @@ obj-$(CONFIG_INTERCONNECT)	+= interconnect/
 obj-$(CONFIG_COUNTER)		+= counter/
 obj-$(CONFIG_MOST)		+= most/
 obj-$(CONFIG_TRUSTY)		+= trusty/
+obj-$(CONFIG_PKGLIST)		+= pkglist/
 obj-$(CONFIG_ARCH_SPRD)		+= unisoc_platform/
 
 #sec-nfc

@@ -4,6 +4,8 @@
  */
 
 #include <linux/dma-buf.h>
+#include <linux/ion.h>
+#include <linux/sprd_iommu.h>
 #include <drm/drm_atomic_helper.h>
 #include <drm/drm_crtc_helper.h>
 #include <drm/drm_gem_framebuffer_helper.h>
@@ -14,13 +16,14 @@
 #include "sprd_gem.h"
 #include "sprd_crtc.h"
 #include "sprd_plane.h"
-#include "sprd_iommu.h"
 
 int sprd_crtc_iommu_map(struct device *dev,
 				struct sprd_gem_obj *sprd_gem)
 {
 	struct dma_buf *dma_buf;
 	struct sprd_iommu_map_data iommu_data = {};
+	struct ion_buffer *ionbuf;
+	int ret;
 
 	if (!sprd_gem->base.import_attach)
 		return 0;
@@ -30,12 +33,23 @@ int sprd_crtc_iommu_map(struct device *dev,
 	iommu_data.iova_size = dma_buf->size;
 	iommu_data.ch_type = SPRD_IOMMU_FM_CH_RW;
 
-	if (sprd_iommu_map(dev, &iommu_data)) {
+	ionbuf = ion_dmabuf_to_buffer(dma_buf);
+	if (!IS_ERR(ionbuf)) {
+		iommu_data.table = ionbuf->sg_table;
+		ret = sprd_iommu_map_v2(dev, &iommu_data,
+					SPRD_IOMMU_BUFTYPE_SG_TABLE);
+	} else {
+		ret = sprd_iommu_map(dev, &iommu_data);
+	}
+	if (ret) {
 		DRM_ERROR("failed to map iommu address\n");
-		return -EINVAL;
+		return ret;
 	}
 
 	sprd_gem->dma_addr = iommu_data.iova_addr;
+	if (IS_ENABLED(CONFIG_MITOCHODRIA_C8PRO_USER_DIAG))
+		pr_info_once("C8DIAG display-map exporter=%s size=%zu iova=%pad\n",
+			dma_buf->exp_name, dma_buf->size, &sprd_gem->dma_addr);
 
 	return 0;
 }

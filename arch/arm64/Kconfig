@@ -361,6 +361,14 @@ source "arch/arm64/Kconfig.platforms"
 
 menu "Kernel Features"
 
+config MITOCHODRIA_PVR_CACHE_API
+	bool "Export ARM64 PoC cache maintenance for Rogue DDK"
+	default n
+	help
+	  Export cache range operations for the ROC1 Rogue driver. The driver
+	  supplies kernel linear mappings of CPU physical RAM ranges, instead
+	  of dereferencing DMA operations or treating physical addresses as IOVAs.
+
 menu "ARM errata workarounds via the alternatives framework"
 
 config ARM64_WORKAROUND_CLEAN_CACHE

@@ -19,7 +19,18 @@ else
 CLANG_FLAGS	+= --target=$(CLANG_TARGET_FLAGS)
 endif # CLANG_TARGET_FLAGS
 else
-CLANG_FLAGS	+= --target=$(notdir $(CROSS_COMPILE:%-=%))
+# The SPRD BSP build passes an Android NDK CROSS_COMPILE prefix
+# (aarch64-linux-android-) on the kernel make command line.  With the
+# android triple this toolchain does not honour
+# -mstack-protector-guard=sysreg and falls back to the global
+# __stack_chk_guard, which is not defined for arm64 under
+# CONFIG_STACKPROTECTOR_PER_TASK and breaks the vmlinux link.  This tree
+# is validated with the gnu triple, so normalize it here.
+CLANG_TARGET	:= $(notdir $(CROSS_COMPILE:%-=%))
+ifeq ($(CLANG_TARGET),aarch64-linux-android)
+CLANG_TARGET	:= aarch64-linux-gnu
+endif
+CLANG_FLAGS	+= --target=$(CLANG_TARGET)
 endif # CROSS_COMPILE
 
 ifeq ($(LLVM_IAS),0)

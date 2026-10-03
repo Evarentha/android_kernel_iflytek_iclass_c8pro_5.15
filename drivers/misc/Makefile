@@ -5,6 +5,10 @@
 
 obj-$(CONFIG_AW9610X_SAR)	+= aw9610x/
 obj-$(CONFIG_IBM_ASM)		+= ibmasm/
+obj-$(CONFIG_SPRD_APDU)		+= sprd_apdu/
+obj-y				+= sprd_audio/
+obj-$(CONFIG_SPRD_VSP)		+= sprd_vsp/
+obj-$(CONFIG_SPRD_JPG)		+= sprd_jpg/
 obj-$(CONFIG_IBMVMC)		+= ibmvmc.o
 obj-$(CONFIG_AD525X_DPOT)	+= ad525x_dpot.o
 obj-$(CONFIG_AD525X_DPOT_I2C)	+= ad525x_dpot-i2c.o
@@ -65,3 +69,6 @@ obj-$(CONFIG_UID_SYS_STATS)	+= uid_sys_stats.o
 obj-$(CONFIG_SPRD_UID)		+= sprd_uid.o
 obj-$(CONFIG_OPEN_DICE)		+= open-dice.o
 obj-$(CONFIG_SPRD_SOCID)	+= sprd_soc_id.o
+obj-y += sprd_dualusb_monitor.o
+obj-y += sprd_wifi_stub.o
+obj-$(CONFIG_MITOCHODRIA_C8PRO_BLUETOOTH) += c8pro_bluetooth.o

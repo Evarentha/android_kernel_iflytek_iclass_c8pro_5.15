@@ -1540,6 +1540,7 @@ static int shub_remove(struct platform_device *pdev)
 
 static const struct of_device_id shub_match_table[] = {
 	{.compatible = "sprd,sensor-hub",},
+	{.compatible = "sprd,roc1-sensorhub",},
 	{},
 };
 

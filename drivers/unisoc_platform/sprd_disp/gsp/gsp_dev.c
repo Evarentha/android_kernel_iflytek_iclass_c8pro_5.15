@@ -26,6 +26,7 @@
 #include "gsp_workqueue.h"
 #include "gsp_r8p0/gsp_r8p0_core.h"
 #include "gsp_r9p0/gsp_r9p0_core.h"
+#include "gsp_r7p0/gsp_r7p0_core.h"
 
 #include "../sprd_drm.h"
 #include "../sprd_drm_gsp.h"
@@ -58,7 +59,22 @@ static struct gsp_core_ops gsp_r9p0_core_ops = {
 	.dump = gsp_r9p0_core_dump,
 };
 
+static struct gsp_core_ops gsp_r7p0_core_ops = {
+	.parse_dt = gsp_r7p0_core_parse_dt,
+	.alloc = gsp_r7p0_core_alloc,
+	.init = gsp_r7p0_core_init,
+	.copy = gsp_r7p0_core_copy_cfg,
+	.trigger = gsp_r7p0_core_trigger,
+	.release = gsp_r7p0_core_release,
+	.enable = gsp_r7p0_core_enable,
+	.disable = gsp_r7p0_core_disable,
+	.intercept = gsp_r7p0_core_intercept,
+	.reset = gsp_r7p0_core_reset,
+	.dump = gsp_r7p0_core_dump,
+};
+
 static struct of_device_id gsp_dt_ids[] = {
+	{ .compatible = "sprd,gsp-r7p0-roc1", .data = &gsp_r7p0_core_ops },
 	{.compatible = "sprd,gsp-r8p0-sharkl5pro",
 	 .data = (void *)&gsp_r8p0_core_ops},
 	{.compatible = "sprd,gsp-r9p0-qogirn6pro",
@@ -544,7 +560,7 @@ int sprd_gsp_get_capability_ioctl(struct drm_device *drm_dev, void *data,
 	GSP_DEV_INFO(dev, "io_cnt:%d, core_cnt:%d ,size:%zu, cap->size:%d",
 		capa->io_cnt, capa->core_cnt, size, capa->capa_size);
 
-	return ret;
+	return ret ? -EFAULT : 0;
 }
 EXPORT_SYMBOL(sprd_gsp_get_capability_ioctl);
 

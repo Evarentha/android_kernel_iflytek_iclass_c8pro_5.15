@@ -14,3 +14,5 @@ config SND_SOC_SPRD_MCDT
 	  Say y here to enable multi-channel data transfer support. It
 	  is used for sound stream transmission between audio subsystem
 	  and other AP/CP subsystem.
+
+source "sound/soc/sprd/roc1/Kconfig"

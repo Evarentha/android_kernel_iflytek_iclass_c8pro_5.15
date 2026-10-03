@@ -234,10 +234,10 @@ static struct ion_buffer *get_ion_buffer(int fd, struct dma_buf *dmabuf)
 			       dmabuf);
 			return ERR_PTR(-EBADF);
 		}
-		buffer = dmabuf->priv;
+		buffer = ion_dmabuf_to_buffer(dmabuf);
 		dma_buf_put(dmabuf);
 	} else {
-		buffer = dmabuf->priv;
+		buffer = ion_dmabuf_to_buffer(dmabuf);
 	}
 
 	return buffer;
@@ -298,31 +298,48 @@ EXPORT_SYMBOL(sprd_ion_get_phys_addr);
 
 void *sprd_ion_map_kernel(struct dma_buf *dmabuf, unsigned long offset)
 {
-	void *vaddr = NULL;
-	struct ion_buffer *buffer = dmabuf->priv;
+	void *vaddr;
+	struct ion_buffer *buffer;
+	int ret;
 
 	if (!dmabuf)
 		return ERR_PTR(-EINVAL);
 
-	dmabuf->ops->begin_cpu_access(dmabuf, DMA_BIDIRECTIONAL);
-	vaddr = ion_buffer_kmap_get(buffer) + offset * PAGE_SIZE;
+	buffer = ion_dmabuf_to_buffer(dmabuf);
+	if (IS_ERR(buffer))
+		return buffer;
+	if (offset >= DIV_ROUND_UP(buffer->size, PAGE_SIZE))
+		return ERR_PTR(-EINVAL);
+	ret = dma_buf_begin_cpu_access(dmabuf, DMA_BIDIRECTIONAL);
+	if (ret)
+		return ERR_PTR(ret);
+	mutex_lock(&buffer->lock);
+	vaddr = ion_buffer_kmap_get(buffer);
+	mutex_unlock(&buffer->lock);
+	if (IS_ERR(vaddr)) {
+		dma_buf_end_cpu_access(dmabuf, DMA_BIDIRECTIONAL);
+		return vaddr;
+	}
 
-	return vaddr;
+	return vaddr + offset * PAGE_SIZE;
 }
 EXPORT_SYMBOL(sprd_ion_map_kernel);
 
 int sprd_ion_unmap_kernel(struct dma_buf *dmabuf, unsigned long offset)
 {
 
-	struct ion_buffer *buffer = dmabuf->priv;
+	struct ion_buffer *buffer;
 
 	if (!dmabuf)
 		return -EINVAL;
 
+	buffer = ion_dmabuf_to_buffer(dmabuf);
+	if (IS_ERR(buffer))
+		return PTR_ERR(buffer);
+	mutex_lock(&buffer->lock);
 	ion_buffer_kmap_put(buffer);
-	dmabuf->ops->end_cpu_access(dmabuf, DMA_BIDIRECTIONAL);
-
-	return 0;
+	mutex_unlock(&buffer->lock);
+	return dma_buf_end_cpu_access(dmabuf, DMA_BIDIRECTIONAL);
 }
 EXPORT_SYMBOL(sprd_ion_unmap_kernel);
 
@@ -571,4 +588,3 @@ module_platform_driver(sprd_ion_driver);
 MODULE_LICENSE("GPL v2");
 MODULE_DESCRIPTION("Unisoc ION Driver");
 MODULE_AUTHOR("Sheng Xu <sheng.xu@unisoc.com>");
-

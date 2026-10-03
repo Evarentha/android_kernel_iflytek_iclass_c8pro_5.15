@@ -1189,7 +1189,9 @@ static void vser_free_inst(struct usb_function_instance *fi)
 	kfree(fi_vser->name);
 	kfree(fi_vser);
 
+#if IS_ENABLED(CONFIG_USB_F_VSERIAL_BYPASS_USER)
 	destroy_workqueue(vser_tx_wq);
+#endif
 
 	vser_cleanup();
 }

@@ -701,6 +701,8 @@ static int cp_dvfs_remove(struct platform_device *pdev)
 
 static const struct of_device_id cp_dvfs_match[] = {
 	{ .compatible = "sprd,pubcp-dvfs" },
+	{ .compatible = "sprd,roc1-pubcp-dvfs" },
+	{ .compatible = "sprd,roc1-wtlcp-dvfs" },
 	{ .compatible = "sprd,wtlcp-dvfs" },
 	{ .compatible = "sprd,pscp-dvfs" },
 	{ .compatible = "sprd,phycp-dvfs" },

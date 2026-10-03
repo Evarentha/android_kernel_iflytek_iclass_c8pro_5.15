@@ -7444,6 +7444,12 @@ static struct security_hook_list selinux_hooks[] __lsm_ro_after_init = {
 
 static __init int selinux_init(void)
 {
+#ifdef CONFIG_MITOCHODRIA_SELINUX_STAY_PERMISSIVE
+	/* Force permissive mode regardless of command line or userspace */
+	selinux_enforcing_boot = 0;
+	pr_warn("SELinux: MITOCHODRIA_SELINUX_STAY_PERMISSIVE is set - forcing permissive mode\n");
+#endif
+
 	pr_info("SELinux:  Initializing.\n");
 
 	memset(&selinux_state, 0, sizeof(selinux_state));

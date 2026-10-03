@@ -63,6 +63,11 @@ struct timezone {
 #define CLOCK_SGI_CYCLE			10
 #define CLOCK_TAI			11
 
+/* Legacy Unisoc Android timerfd clocks (wall-clock alarm bases). */
+#define CLOCK_POWEROFF_WAKE		12
+#define CLOCK_POWERON_WAKE		13
+#define CLOCK_POWEROFF_ALARM		14
+
 #define MAX_CLOCKS			16
 #define CLOCKS_MASK			(CLOCK_REALTIME | CLOCK_MONOTONIC)
 #define CLOCKS_MONO			CLOCK_MONOTONIC

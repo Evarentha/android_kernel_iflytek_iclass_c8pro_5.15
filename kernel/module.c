@@ -1300,6 +1300,9 @@ static inline int check_modstruct_version(const struct load_info *info,
 		.gplok	= true,
 	};
 
+	if (IS_ENABLED(CONFIG_MITOCHODRIA_MODULE_SKIP_MODULE_LAYOUT_CRC))
+		return 1;
+
 	/*
 	 * Since this should be found in kernel (which can't be removed), no
 	 * locking is necessary -- use preempt_disable() to placate lockdep.
@@ -1341,6 +1344,11 @@ static inline int check_modstruct_version(const struct load_info *info,
 static inline int same_magic(const char *amagic, const char *bmagic,
 			     bool has_crcs)
 {
+#ifdef CONFIG_MITOCHODRIA_MODULE_SKIP_VERMAGIC_VERSION
+	/* Skip the kernel version part; compare the remaining attributes. */
+	amagic += strcspn(amagic, " ");
+	bmagic += strcspn(bmagic, " ");
+#endif
 	return strcmp(amagic, bmagic) == 0;
 }
 #endif /* CONFIG_MODVERSIONS */

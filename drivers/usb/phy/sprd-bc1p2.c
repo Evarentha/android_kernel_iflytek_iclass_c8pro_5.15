@@ -428,6 +428,10 @@ int usb_add_bc1p2_init(struct sprd_bc1p2_priv *bc1p2_info, struct usb_phy *x)
 		return -EINVAL;
 	}
 
+	/* The PHY can probe before the PMIC's BC1.2 child device. */
+	if (!bc1p2 || !bc1p2->regmap)
+		return -EPROBE_DEFER;
+
 	bc1p2_info->phy = x;
 	bc1p2_info->bc1p2 = bc1p2;
 	if (!bc1p2->redetect_enable)

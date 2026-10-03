@@ -76,7 +76,7 @@ struct sprd_crtc_ops {
 	void (*atomic_begin)(struct sprd_crtc *crtc);
 	void (*atomic_flush)(struct sprd_crtc *crtc);
 
-	void (*prepare_fb)(struct sprd_crtc *crtc,
+	int (*prepare_fb)(struct sprd_crtc *crtc,
 			  struct drm_plane_state *new_state);
 	void (*cleanup_fb)(struct sprd_crtc *crtc,
 			   struct drm_plane_state *old_state);

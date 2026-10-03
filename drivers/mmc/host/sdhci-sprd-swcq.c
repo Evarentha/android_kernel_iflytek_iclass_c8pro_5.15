@@ -4,6 +4,8 @@
 //
 // Copyright (C) 2021 UNISOC, Inc.
 // Author: Zhongwu Zhu <zhongwu.zhu@unisoc.com>
+#include <linux/mmc/sdio.h>
+
 #define _DRIVER_NAME "sprd-sdhci-swcq"
 #define DBG(f, x...) \
 	pr_debug("%s: " _DRIVER_NAME ": " f, mmc_hostname(host->mmc), ## x)
@@ -1944,7 +1946,7 @@ static void sdhci_sprd_prepare_data(struct sdhci_host *host, struct mmc_command 
 	    (host->quirks2 & SDHCI_QUIRK2_USE_32BIT_BLK_CNT)) {
 		if (sdhci_readw(host, SDHCI_BLOCK_COUNT))
 			sdhci_writew(host, 0, SDHCI_BLOCK_COUNT);
-		sdhci_writew(host, data->blocks, SDHCI_32BIT_BLK_CNT);
+		sdhci_writel(host, data->blocks, SDHCI_32BIT_BLK_CNT);
 	} else {
 		sdhci_writew(host, data->blocks, SDHCI_BLOCK_COUNT);
 	}
@@ -2281,4 +2283,3 @@ int sdhci_sprd_irq_request_swcq(struct sdhci_host *host)
 
 	return ret;
 }
-

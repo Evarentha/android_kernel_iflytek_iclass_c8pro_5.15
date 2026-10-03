@@ -64,6 +64,9 @@ enum {
 	ENHANCE_CFG_ID_UD,
 	ENHANCE_CFG_ID_UPDATE_LUTS,
 	ENHANCE_CFG_ID_SR_EPF,
+	ENHANCE_CFG_ID_CABC_GAIN,
+	ENHANCE_CFG_ID_CABC_BL_FIX,
+	ENHANCE_CFG_ID_CABC_DISABLE,
 	ENHANCE_CFG_ID_MAX
 };
 
@@ -202,6 +205,7 @@ struct dpu_context {
 
 	/* other specific parameters */
 	bool panel_ready;
+	bool is_hsv_bypass;
 	unsigned long logo_addr;
 	unsigned long logo_size;
 	u32 prev_y2r_coef;
@@ -253,6 +257,9 @@ extern const struct dpu_clk_ops sharkl3_dpu_clk_ops;
 extern const struct dpu_glb_ops sharkl3_dpu_glb_ops;
 
 extern const struct dpu_core_ops dpu_r4p0_core_ops;
+extern const struct dpu_core_ops dpu_r3p0_core_ops;
+extern const struct dpu_clk_ops roc1_dpu_clk_ops;
+extern const struct dpu_glb_ops roc1_dpu_glb_ops;
 extern const struct dpu_clk_ops sharkl5pro_dpu_clk_ops;
 extern const struct dpu_glb_ops sharkl5pro_dpu_glb_ops;
 

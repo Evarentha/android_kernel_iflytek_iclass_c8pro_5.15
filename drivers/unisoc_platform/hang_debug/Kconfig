@@ -14,6 +14,17 @@ config SPRD_APHANG
 	  ensures that the original function
 	  is not lost.
 
+config SPRD_WDF
+	tristate "SPRD hang debug WDF (watchdog feed) only"
+	depends on SPRD_HANG_DEBUG
+
+config SPRD_WDH
+	tristate "SPRD hang debug WDH (watchdog hang) only"
+	depends on SPRD_HANG_DEBUG
+	help
+	  Build only the WDF (watchdog feed) part as its own module,
+	  matching the 4.14 factory configuration.
+
 config SPRD_HANG_RESET
 	bool "trigger cm4 handling ap watchdog reset"
 	depends on SPRD_APHANG

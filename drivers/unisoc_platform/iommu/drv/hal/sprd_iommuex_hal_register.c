@@ -284,7 +284,9 @@ void mmu_ex_frc_copy(ulong ctrl_base_addr, u32 iommu_id, u32 iommu_type)
 		else if (iommu_type == SPRD_IOMMUEX_PIKE2)
 			reg_addr = ctrl_base_addr + 0x4;
 		else if (iommu_type == SPRD_IOMMUEX_SHARKL3
-			|| iommu_type == SPRD_IOMMUEX_SHARKL5)
+			|| iommu_type == SPRD_IOMMUEX_SHARKL5
+			|| iommu_type == SPRD_IOMMUEX_ROC1)
+			/* DCAM AXIM MMU_CTRL: latch the MMU shadow registers. */
 			reg_addr = ctrl_base_addr + 0x3010;
 		else
 			return;

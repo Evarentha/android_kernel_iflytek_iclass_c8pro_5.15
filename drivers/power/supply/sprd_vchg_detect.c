@@ -361,6 +361,11 @@ static int sprd_vchg_detect_init(struct sprd_vchg_info *info, struct power_suppl
 
 	info->psy = psy;
 	INIT_WORK(&info->sprd_vchg_work, sprd_vchg_work);
+#if IS_ENABLED(CONFIG_SC27XX_PD)
+	INIT_DELAYED_WORK(&info->pd_hard_reset_work, sprd_vchg_pd_hard_reset_work);
+	INIT_DELAYED_WORK(&info->typec_extcon_work, sprd_vchg_typec_extcon_work);
+	INIT_WORK(&info->ignore_hard_reset_work, ignore_hard_reset_work);
+#endif
 
 	info->usb_notify.notifier_call = sprd_vchg_change;
 	ret = usb_register_notifier(info->usb_phy, &info->usb_notify);
@@ -372,14 +377,10 @@ static int sprd_vchg_detect_init(struct sprd_vchg_info *info, struct power_suppl
 
 #if IS_ENABLED(CONFIG_SC27XX_PD)
 	if (!info->pd_extcon_enable)
-		return 0;
+		goto detect_status;
 
 	if (!of_property_read_bool(dev->of_node, "extcon"))
-		return 0;
-
-	INIT_DELAYED_WORK(&info->pd_hard_reset_work, sprd_vchg_pd_hard_reset_work);
-
-	INIT_WORK(&info->ignore_hard_reset_work, ignore_hard_reset_work);
+		goto detect_status;
 
 	info->pd_extcon = extcon_get_edev_by_phandle(dev, 1);
 	if (IS_ERR(info->pd_extcon)) {
@@ -396,7 +397,6 @@ static int sprd_vchg_detect_init(struct sprd_vchg_info *info, struct power_suppl
 		goto err_reg_usb;
 	}
 
-	INIT_DELAYED_WORK(&info->typec_extcon_work, sprd_vchg_typec_extcon_work);
 	info->typec_extcon = extcon_get_edev_by_phandle(dev, 0);
 	if (IS_ERR(info->typec_extcon)) {
 		dev_err(dev, "%s: failed to find typec extcon device.\n", SPRD_VCHG_TAG);
@@ -411,8 +411,9 @@ static int sprd_vchg_detect_init(struct sprd_vchg_info *info, struct power_suppl
 		ret = -EINVAL;
 		goto err_reg_usb;
 	}
-#endif
 
+detect_status:
+#endif
 	sprd_vchg_detect_status(info);
 	sprd_vchg_detect_pd_extcon_status(info);
 

@@ -383,6 +383,16 @@ config ARM_SPRD_SW_CPUFREQ
 
 	  If in doubt, say N.
 
+config ARM_SPRD_HW_CPUFREQ
+	bool "Unisoc UD710 (ROC1) hardware CPU frequency scaling"
+	depends on ARM64 && ARCH_SPRD && OF && I2C
+	select PM_OPP
+	select NVMEM
+	select MFD_SYSCON
+	help
+	  Use the ROC1 hardware DVFS controller and its binning and voltage
+	  tables to scale both CPU clusters and the associated SCU clocks.
+
 config ARM_SPRD_CPUFREQ_V2
 	tristate "Sprd apcpu hardware dvfs driver"
 	depends on ARCH_SPRD && CPU_FREQ && SPRD_SIP_FW
@@ -406,4 +416,3 @@ config ARM_SPRD_SW_CPUFREQ_MAXFREQ
 
 	  If in doubt, say N.
 endif
-

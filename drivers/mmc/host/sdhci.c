@@ -1094,7 +1094,7 @@ static inline void sdhci_set_block_info(struct sdhci_host *host,
 	    (host->quirks2 & SDHCI_QUIRK2_USE_32BIT_BLK_CNT)) {
 		if (sdhci_readw(host, SDHCI_BLOCK_COUNT))
 			sdhci_writew(host, 0, SDHCI_BLOCK_COUNT);
-		sdhci_writew(host, data->blocks, SDHCI_32BIT_BLK_CNT);
+		sdhci_writel(host, data->blocks, SDHCI_32BIT_BLK_CNT);
 	} else {
 		sdhci_writew(host, data->blocks, SDHCI_BLOCK_COUNT);
 	}

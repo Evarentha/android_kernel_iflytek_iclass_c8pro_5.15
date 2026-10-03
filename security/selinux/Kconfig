@@ -23,6 +23,15 @@ config SECURITY_SELINUX_BOOTPARAM
 
 	  If you are unsure how to answer this question, answer N.
 
+config MITOCHODRIA_SELINUX_STAY_PERMISSIVE
+	bool "Mitochodria: keep SELinux permissive"
+	depends on SECURITY_SELINUX && SECURITY_SELINUX_DEVELOP
+	help
+	  Mitochodria compatibility policy that keeps SELinux permanently in
+	  permissive mode. Any attempt to switch to enforcing (for example by
+	  Android init) is ignored. This is intended only for development on
+	  devices whose vendor SEPolicy cannot be modified.
+
 config SECURITY_SELINUX_DISABLE
 	bool "NSA SELinux runtime disable"
 	depends on SECURITY_SELINUX

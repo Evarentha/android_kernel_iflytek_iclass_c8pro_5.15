@@ -5,6 +5,8 @@
 
 #include <linux/dma-buf.h>
 #include <linux/pm_runtime.h>
+#include <linux/ion.h>
+#include <linux/sprd_ion.h>
 
 #include <drm/drm_gem.h>
 #include <drm/drm_gem_cma_helper.h>
@@ -13,10 +15,53 @@
 #include "sprd_drm.h"
 #include "sprd_gem.h"
 
+int sprd_gem_prime_vmap(struct drm_gem_object *obj, struct dma_buf_map *map)
+{
+	struct sprd_gem_obj *gem = to_sprd_gem_obj(obj);
+
+	if (!gem->vaddr)
+		return -ENOMEM;
+	dma_buf_map_set_vaddr(map, gem->vaddr);
+	return 0;
+}
+
+static int sprd_gem_alloc_fb(struct sprd_gem_obj *gem)
+{
+	struct dma_buf *dmabuf;
+	unsigned long phys;
+	size_t size;
+	int ret;
+
+	if (!IS_REACHABLE(CONFIG_ION_SPRD))
+		return -ENOMEM;
+
+	dmabuf = ion_alloc(gem->base.size, ION_HEAP_ID_MASK_FB, 0);
+	if (IS_ERR(dmabuf))
+		return PTR_ERR(dmabuf);
+	ret = sprd_ion_get_phys_addr(-1, dmabuf, &phys, &size);
+	if (ret)
+		goto put;
+	if (size < gem->base.size) {
+		ret = -EINVAL;
+		goto put;
+	}
+	ret = dma_buf_vmap(dmabuf, &gem->fb_map);
+	if (ret)
+		goto put;
+	gem->fb_dmabuf = dmabuf;
+	gem->dma_addr = phys;
+	gem->vaddr = gem->fb_map.vaddr;
+	DRM_INFO("using factory ION framebuffer heap, size %zu\n", size);
+	return 0;
+put:
+	dma_buf_put(dmabuf);
+	return ret;
+}
+
 static const struct drm_gem_object_funcs sprd_gem_object_funcs = {
 	.free = sprd_gem_free_object,
 	.get_sg_table = sprd_gem_prime_get_sg_table,
-	.vmap = drm_gem_cma_vmap,
+	.vmap = sprd_gem_prime_vmap,
 	.vm_ops = &drm_gem_cma_vm_ops,
 };
 
@@ -59,7 +104,10 @@ void sprd_gem_free_object(struct drm_gem_object *obj)
 
 	DRM_DEBUG("gem = %p\n", obj);
 
-	if (sprd_gem->vaddr)
+	if (sprd_gem->fb_dmabuf) {
+		dma_buf_vunmap(sprd_gem->fb_dmabuf, &sprd_gem->fb_map);
+		dma_buf_put(sprd_gem->fb_dmabuf);
+	} else if (sprd_gem->vaddr)
 		dma_free_wc(obj->dev->dev, obj->size,
 			sprd_gem->vaddr, sprd_gem->dma_addr);
 	else if (sprd_gem->sgtb)
@@ -88,10 +136,12 @@ int sprd_gem_dumb_create(struct drm_file *file_priv, struct drm_device *drm,
 	DRM_INFO("args->pitch:%u args->size:%llu vaddr:0x%px\n",
               args->pitch, args->size, sprd_gem->vaddr);
 	if (!sprd_gem->vaddr) {
-		DRM_ERROR("failed to allocate buffer with size %llu\n",
-			  args->size);
-		ret = -ENOMEM;
-		goto error;
+		ret = sprd_gem_alloc_fb(sprd_gem);
+		if (ret) {
+			DRM_ERROR("failed to allocate framebuffer size %llu: %d\n",
+				  args->size, ret);
+			goto error;
+		}
 	}
 
 	ret = drm_gem_handle_create(file_priv, &sprd_gem->base, &args->handle);
@@ -116,11 +166,24 @@ int sprd_gem_object_mmap(struct drm_gem_object *obj,
 
 	vma->vm_flags &= ~VM_PFNMAP;
 	vma->vm_pgoff = 0;
+	if (sprd_gem->fb_dmabuf) {
+		if (vma->vm_end - vma->vm_start > obj->size) {
+			ret = -EINVAL;
+			goto out;
+		}
+		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
+		ret = remap_pfn_range(vma, vma->vm_start,
+				     sprd_gem->dma_addr >> PAGE_SHIFT,
+				     vma->vm_end - vma->vm_start,
+				     vma->vm_page_prot);
+		goto out;
+	}
 
 	ret = dma_mmap_wc(obj->dev->dev, vma,
 				    sprd_gem->vaddr, sprd_gem->dma_addr,
 				    vma->vm_end - vma->vm_start);
 
+out:
 	if (ret)
 		drm_gem_vm_close(vma);
 
@@ -162,6 +225,17 @@ struct sg_table *sprd_gem_prime_get_sg_table(struct drm_gem_object *obj)
 	sgtb = kzalloc(sizeof(*sgtb), GFP_KERNEL);
 	if (!sgtb)
 		return ERR_PTR(-ENOMEM);
+	if (sprd_gem->fb_dmabuf) {
+		ret = sg_alloc_table(sgtb, 1, GFP_KERNEL);
+		if (ret) {
+			kfree(sgtb);
+			return ERR_PTR(ret);
+		}
+		sg_set_page(sgtb->sgl,
+			    pfn_to_page(sprd_gem->dma_addr >> PAGE_SHIFT),
+			    obj->size, 0);
+		return sgtb;
+	}
 
 	ret = dma_get_sgtable(obj->dev->dev, sgtb, sprd_gem->vaddr,
 			      sprd_gem->dma_addr, obj->size);
@@ -178,6 +252,7 @@ struct drm_gem_object *sprd_gem_prime_import_sg_table(struct drm_device *drm,
 		struct dma_buf_attachment *attach, struct sg_table *sgtb)
 {
 	struct sprd_gem_obj *sprd_gem;
+	struct ion_buffer *ionbuf;
 
 	sprd_gem = sprd_gem_obj_create(drm, attach->dmabuf->size);
 	if (IS_ERR(sprd_gem))
@@ -190,9 +265,22 @@ struct drm_gem_object *sprd_gem_prime_import_sg_table(struct drm_device *drm,
 
 	sprd_gem->sgtb = sgtb;
 
-	if (!(strcmp(attach->dmabuf->exp_name, "system") &&
+	ionbuf = ion_dmabuf_to_buffer(attach->dmabuf);
+	if (!IS_ERR(ionbuf)) {
+		/* System ION is scatter-gather even when it currently has one entry. */
+		sprd_gem->need_iommu = ionbuf->heap->type == ION_HEAP_TYPE_SYSTEM ||
+			ionbuf->sg_table->nents != 1 ||
+			sg_phys(ionbuf->sg_table->sgl) > U32_MAX ||
+			ionbuf->size - 1 > U32_MAX - sg_phys(ionbuf->sg_table->sgl);
+		if (!sprd_gem->need_iommu)
+			sprd_gem->dma_addr = sg_phys(ionbuf->sg_table->sgl);
+	} else if (!(strcmp(attach->dmabuf->exp_name, "system") &&
 	      strcmp(attach->dmabuf->exp_name, "system-uncached")))
 		sprd_gem->need_iommu = true;
+	if (IS_ENABLED(CONFIG_MITOCHODRIA_C8PRO_USER_DIAG))
+		pr_info_once("C8DIAG gem exporter=%s size=%zu nents=%u iommu=%d addr=%pad\n",
+			attach->dmabuf->exp_name, attach->dmabuf->size,
+			sgtb->nents, sprd_gem->need_iommu, &sprd_gem->dma_addr);
 
 	return &sprd_gem->base;
 }

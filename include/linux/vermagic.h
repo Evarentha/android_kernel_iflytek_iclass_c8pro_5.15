@@ -30,7 +30,11 @@
 #ifdef CONFIG_MODVERSIONS
 #define MODULE_VERMAGIC_MODVERSIONS "modversions "
 #else
-#define MODULE_VERMAGIC_MODVERSIONS ""
+/* Always include "modversions" for vendor module vermagic compat.
+ * CRC checking is still disabled (check_version always returns 1
+ * when CONFIG_MODVERSIONS=n), the string just needs to match.
+ */
+#define MODULE_VERMAGIC_MODVERSIONS "modversions "
 #endif
 #ifdef RANDSTRUCT_PLUGIN
 #include <generated/randomize_layout_hash.h>

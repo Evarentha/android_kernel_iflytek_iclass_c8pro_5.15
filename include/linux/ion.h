@@ -184,6 +184,9 @@ struct ion_dma_buf_attachment {
 
 #ifdef CONFIG_ION
 
+/* Caller must hold a dma-buf reference while using the returned buffer. */
+struct ion_buffer *ion_dmabuf_to_buffer(struct dma_buf *dmabuf);
+
 /**
  * __ion_device_add_heap - adds a heap to the ion device
  *
@@ -366,6 +369,11 @@ size_t ion_query_heaps_kernel(struct ion_heap_data *hdata, size_t size);
 long get_ion_heap_total_pages(void);
 long get_ion_pool_total_pages(void);
 #else
+
+static inline struct ion_buffer *ion_dmabuf_to_buffer(struct dma_buf *dmabuf)
+{
+	return ERR_PTR(-EOPNOTSUPP);
+}
 
 static inline int __ion_device_add_heap(struct ion_heap *heap,
 				      struct module *owner)

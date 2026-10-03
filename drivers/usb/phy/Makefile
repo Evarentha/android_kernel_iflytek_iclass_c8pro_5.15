@@ -7,6 +7,8 @@ obj-$(CONFIG_OF)			+= of.o
 
 # transceiver drivers, keep the list sorted
 
+obj-$(CONFIG_SPRD_ROC1_USB2_PHY)	+= phy-sprd-roc1.o
+obj-$(CONFIG_SPRD_ROC1_USB3_PHY)	+= phy-sprd-usb3.o
 obj-$(CONFIG_AB8500_USB)		+= phy-ab8500-usb.o
 obj-$(CONFIG_FSL_USB2_OTG)		+= phy-fsl-usb.o
 obj-$(CONFIG_ISP1301_OMAP)		+= phy-isp1301-omap.o

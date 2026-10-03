@@ -686,6 +686,10 @@ static int sprd_eic_probe(struct platform_device *pdev)
 }
 
 static const struct of_device_id sprd_eic_of_match[] = {
+	{ .compatible = "sprd,roc1-eic-debounce", .data = &sc9860_eic_dbnc_data },
+	{ .compatible = "sprd,roc1-eic-latch", .data = &sc9860_eic_latch_data },
+	{ .compatible = "sprd,roc1-eic-async", .data = &sc9860_eic_async_data },
+	{ .compatible = "sprd,roc1-eic-sync", .data = &sc9860_eic_sync_data },
 	{
 		.compatible = "sprd,sc9860-eic-debounce",
 		.data = &sc9860_eic_dbnc_data,

@@ -178,6 +178,13 @@ config ARM_RK3399_DMC_DEVFREQ
 	  It sets the frequency for the memory controller and reads the usage counts
 	  from hardware.
 
+config SPRD_ROC1_TOP_DVFS
+	bool "Unisoc UD710 (ROC1) top-level DVFS controller"
+	depends on ARCH_SPRD && OF
+	select MFD_SYSCON
+	help
+	  Configure the shared voltage rails and subsystem votes on ROC1.
+
 config DVFS_APSYS_SPRD
 	tristate "Sprd DVFS APSYS DEVFREQ Driver"
 	depends on SPRD_SOCID

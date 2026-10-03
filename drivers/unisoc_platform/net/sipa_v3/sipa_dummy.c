@@ -898,7 +898,7 @@ static void sipa_dummy_netdev_set_state(struct net_device *ndev, bool up)
 	int netid = 0;
 	struct sipa_dummy_ndev_info *ndev_info;
 
-	if (!net_eq(ndev->nd_net.net, &init_net))
+	if (!net_eq(dev_net(ndev), &init_net))
 		return;
 	priv = netdev_priv(ndev);
 	if (!strncmp(ndev->name, "sipa_usb", 8)) {

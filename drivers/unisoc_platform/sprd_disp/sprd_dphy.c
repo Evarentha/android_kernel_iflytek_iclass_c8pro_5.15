@@ -224,6 +224,12 @@ static const struct sprd_dphy_ops qogirn6pro_dphy = {
 };
 
 static const struct of_device_id dphy_match_table[] = {
+	{ .compatible = "sprd,roc1-dsi-phy",
+	  .data = &(const struct sprd_dphy_ops) {
+		.ppi = &dsi_ctrl_ppi_ops,
+		.pll = &sharkl5_dphy_pll_ops,
+		.glb = &roc1_dphy_glb_ops,
+	  } },
 	{ .compatible = "sprd,sharkle-dsi-phy",
 	  .data = &sharkle_dphy },
 	{ .compatible = "sprd,pike2-dsi-phy",

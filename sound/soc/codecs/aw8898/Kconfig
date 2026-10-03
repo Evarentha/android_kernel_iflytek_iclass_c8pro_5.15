@@ -1,0 +1,6 @@
+config SND_SOC_AW8898
+	tristate "Awinic AW8898 SmartPA"
+	depends on I2C
+	help
+	  Enable support for the Awinic AW8898 Smart Power Amplifier.
+	  Used on iflytek iclass-c8pro (UD710 ROC1).

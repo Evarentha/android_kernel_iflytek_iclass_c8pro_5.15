@@ -2389,6 +2389,27 @@ config INIT_ALL_POSSIBLE
 	  it was better to provide this option than to break all the archs
 	  and have several arch maintainers pursuing me down dark alleys.
 
+config MITOCHODRIA_MODULE_SKIP_VERMAGIC_VERSION
+	bool "Mitochodria: skip kernel version in module vermagic check"
+	depends on MODULES
+	help
+	  Mitochodria closed-module compatibility policy. Module loading skips
+	  the UTS_RELEASE portion of the vermagic string (everything before
+	  the first space), but still compares the remaining SMP, preemption,
+	  module-unload, architecture, and modversions attributes. This allows
+	  factory modules to be reused with a branded kernel release string.
+
+config MITOCHODRIA_MODULE_SKIP_MODULE_LAYOUT_CRC
+	bool "Mitochodria: skip the module_layout CRC check"
+	depends on MODULES && MODVERSIONS
+	default n
+	help
+	  Skip the module_layout symbol CRC check performed before module
+	  relocation. This is separate from skipping the kernel release in
+	  vermagic: other symbol CRCs and the remaining module checks still
+	  apply. Use this for factory-module bring-up; it does not translate
+	  module structures or otherwise make different kernel ABIs compatible.
+
 source "block/Kconfig"
 
 config PREEMPT_NOTIFIERS

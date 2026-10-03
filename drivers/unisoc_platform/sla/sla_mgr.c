@@ -24,11 +24,11 @@
 #include "sla_net_stats_netlink.h"
 
 unsigned int sla_dbg_lvl = SLA_PRT_ALL;
-spinlock_t mgr_lock;/* Spinlock for sla */
+spinlock_t sla_mgr_lock;/* Spinlock for sla */
 
 static int __init init_sla_module(void)
 {
-	spin_lock_init(&mgr_lock);
+	spin_lock_init(&sla_mgr_lock);
 	sla_net_stats_init();
 	sla_nl_init();
 

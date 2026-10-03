@@ -397,7 +397,7 @@ extern int sysctl_net_sfp_enable;
 extern int sysctl_net_sfp_tether_scheme;
 extern int sysctl_tcp_aging_time;
 extern int sysctl_udp_aging_time;
-extern spinlock_t mgr_lock;
+extern spinlock_t sfp_mgr_lock;
 extern struct sfp_fwd_hash_tbl fwd_tbl;
 
 extern int test_count;

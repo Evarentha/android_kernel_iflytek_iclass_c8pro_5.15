@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: GPL-2.0
+config MITOCHODRIA_ROC1_PVR
+	bool "ROC1 PowerVR Rogue 1.11@5516664"
+	depends on ARM64 && ARCH_SPRD && DRM=y && ION=y && ION_SPRD=y
+	depends on PM_DEVFREQ && DEVFREQ_GOV_SIMPLE_ONDEMAND
+	select SYNC_FILE
+	select MITOCHODRIA_PVR_CACHE_API
+	default n
+	help
+	  Native ROC1 Rogue driver using the JingPad/C8Pro BSP DDK and its
+	  existing userspace bridge protocol. Built in so the factory vendor
+	  filesystem need not be changed to replace its 4.14 module.

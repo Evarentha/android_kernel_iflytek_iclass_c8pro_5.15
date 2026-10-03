@@ -9,6 +9,13 @@ if SPRD_COMMON_CLK
 
 # SoC Drivers
 
+config SPRD_ROC1_CLK
+	tristate "Support for the Unisoc UD710 (ROC1) clocks"
+	depends on (ARM64 && ARCH_SPRD) || COMPILE_TEST
+	help
+	  Support the clock controllers on Unisoc UD710 (ROC1), including
+	  the AP, AON, IPA, multimedia, audio and AI clock domains.
+
 config SPRD_UDX710_CLK
 	tristate "Support for the Unisoc UDX710 clocks"
 	depends on (ARM64 && ARCH_SPRD) || COMPILE_TEST

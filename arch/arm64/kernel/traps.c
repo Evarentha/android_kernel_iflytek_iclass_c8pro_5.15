@@ -27,6 +27,7 @@
 #include <linux/syscalls.h>
 #include <linux/mm_types.h>
 #include <linux/kasan.h>
+#include <linux/fs.h>
 
 #include <asm/atomic.h>
 #include <asm/bug.h>
@@ -264,9 +265,75 @@ static void arm64_show_signal(int signo, const char *str)
 	__show_regs(regs);
 }
 
+#ifdef CONFIG_MITOCHODRIA_C8PRO_USER_DIAG
+static void c8pro_fault_mapping(const char *label, unsigned long addr)
+{
+	struct mm_struct *mm = current->mm;
+	struct vm_area_struct *vma;
+
+	if (!mm || !mmap_read_trylock(mm)) {
+		pr_info("C8DIAG %s mapping unavailable\n", label);
+		return;
+	}
+	vma = find_vma(mm, addr);
+	if (vma && addr >= vma->vm_start) {
+		if (vma->vm_file)
+			pr_info("C8DIAG %s=%lx file=%pD start=%lx end=%lx file_offset=%llx\n",
+				label, addr, vma->vm_file, vma->vm_start,
+				vma->vm_end, ((u64)vma->vm_pgoff << PAGE_SHIFT) +
+				addr - vma->vm_start);
+		else
+			pr_info("C8DIAG %s=%lx anonymous start=%lx end=%lx\n",
+				label, addr, vma->vm_start, vma->vm_end);
+	} else {
+		pr_info("C8DIAG %s=%lx unmapped\n", label, addr);
+	}
+	mmap_read_unlock(mm);
+}
+
+static void c8pro_user_fault(int signo, int code, unsigned long far)
+{
+	static DEFINE_RATELIMIT_STATE(rs, 10 * HZ, 2);
+	struct pt_regs *regs = current_pt_regs();
+	unsigned long lr, fp;
+	int i;
+
+	if (!user_mode(regs) ||
+	    (signo != SIGSEGV && signo != SIGBUS && signo != SIGILL) ||
+	    !__ratelimit(&rs))
+		return;
+	lr = compat_user_mode(regs) ? regs->compat_lr : regs->regs[30];
+	fp = regs->regs[29];
+	pr_info("C8DIAG fault comm=%s pid=%d tgid=%d sig=%d code=%d far=%lx esr=%lx compat=%d\n",
+		current->comm, task_pid_nr(current), task_tgid_nr(current),
+		signo, code, far, current->thread.fault_code, compat_user_mode(regs));
+	c8pro_fault_mapping("pc", regs->pc);
+	c8pro_fault_mapping("lr", lr);
+	__show_regs(regs);
+	/* Optional AArch64 frame records; no faulting reads or guessed frames. */
+	if (compat_user_mode(regs))
+		return;
+	for (i = 0; i < 6; i++) {
+		u64 frame[2];
+
+		if (!fp || (fp & 15) || fp < regs->sp ||
+		    fp - regs->sp > SZ_64K ||
+		    copy_from_user_nofault(frame, (void __user *)fp, sizeof(frame)))
+			break;
+		c8pro_fault_mapping("frame-lr", frame[1]);
+		if (frame[0] <= fp)
+			break;
+		fp = frame[0];
+	}
+}
+#endif
+
 void arm64_force_sig_fault(int signo, int code, unsigned long far,
 			   const char *str)
 {
+#ifdef CONFIG_MITOCHODRIA_C8PRO_USER_DIAG
+	c8pro_user_fault(signo, code, far);
+#endif
 	arm64_show_signal(signo, str);
 	if (signo == SIGKILL)
 		force_sig(SIGKILL);

@@ -1259,6 +1259,9 @@ static int sprd_suspend(struct device *dev)
 {
 	struct sprd_uart_port *sup = dev_get_drvdata(dev);
 
+	if (!console_suspend_enabled && uart_console(&sup->port))
+		return 0;
+
 	uart_suspend_port(&sprd_uart_driver, &sup->port);
 
 	return 0;
@@ -1267,6 +1270,11 @@ static int sprd_suspend(struct device *dev)
 static int sprd_resume(struct device *dev)
 {
 	struct sprd_uart_port *sup = dev_get_drvdata(dev);
+
+	/* Match uart_suspend_port(): a live debug console was not suspended. */
+	if (!console_suspend_enabled && uart_console(&sup->port) &&
+	    !sup->port.suspended)
+		return 0;
 
 	uart_resume_port(&sprd_uart_driver, &sup->port);
 

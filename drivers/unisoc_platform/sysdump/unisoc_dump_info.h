@@ -60,11 +60,13 @@ static int sprd_dump_io_init(void)
 static void sprd_dump_io_exit(void) {}
 #endif
 #else
-static int minidump_add_section(const char *name, int size, struct seq_buf **save_buf)
+static inline __maybe_unused int minidump_add_section(const char *name, int size,
+					   struct seq_buf **save_buf)
 {
 	return -EINVAL;
 }
-static void minidump_release_section(const char *name, struct seq_buf *save_buf) {}
+static inline __maybe_unused void minidump_release_section(const char *name,
+					     struct seq_buf *save_buf) {}
 static inline void unisoc_dump_stack_reg(int cpu, struct pt_regs *pregs) {}
 static inline void unisoc_dump_task_stats(void) {}
 static inline void unisoc_dump_runqueues(void) {}

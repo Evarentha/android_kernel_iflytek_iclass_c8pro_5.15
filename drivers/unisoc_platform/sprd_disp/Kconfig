@@ -50,4 +50,10 @@ config DRM_SPRD_WB_DEBUG
 	help
 	  Choose this option if you want to use DPU WriteBack Debug.
 
+config DRM_SPRD_HDMI
+	tristate "UD710 LT9611 DSI to HDMI bridge"
+	depends on I2C && DRM_SPRD_DSI
+	help
+	  Support the LT9611 bridge fitted to UD710 reference boards.
+
 endif

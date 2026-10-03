@@ -116,7 +116,8 @@ static void sc27xx_poweroff_shutdown(void)
 				break;
 
 			msleep(20);
-			pr_err("%s: hotplug cpu%d fail, cnt %d\n", __func__, cpu, retry_cnt);
+			pr_err("%s: hotplug cpu%d fail: %d, cnt %d\n",
+			       __func__, cpu, ret, retry_cnt);
 			retry_cnt++;
 		}
 	}

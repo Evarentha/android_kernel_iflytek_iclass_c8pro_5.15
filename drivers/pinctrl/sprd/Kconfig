@@ -26,6 +26,14 @@ config PINCTRL_SPRD_SC9860
 	  PINCTRL_SPRD_SC9860=m for KO
 	  PINCTRL_SPRD_SC9860 is not set for no building
 
+config PINCTRL_SPRD_ROC1
+	tristate "Unisoc UD710 (ROC1) pinctrl driver"
+	depends on OF
+	depends on ARCH_SPRD || COMPILE_TEST
+	select PINCTRL_SPRD
+	help
+	  Enable pin multiplexing and pin configuration for Unisoc UD710.
+
 config PINCTRL_SPRD_SHARKL3
 	tristate "Spreadtrum sharkl3 pinctrl driver"
 	depends on OF

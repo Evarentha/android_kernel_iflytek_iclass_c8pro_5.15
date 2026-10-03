@@ -229,6 +229,7 @@ struct gsp_r9p0_hdr10_cfg {
 	int reg_hdr_rgmlut_addr;
 	int reg_hdr_dgmlut_data;
 	int reg_hdr_rgmlut_data;
+	__u32 hdr_regamma_lut_table[1024];
 
 	int reg_hdr_csc2_c11;
 	int reg_hdr_csc2_c12;

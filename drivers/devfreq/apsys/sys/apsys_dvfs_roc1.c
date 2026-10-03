@@ -50,6 +50,17 @@ char *roc1_dpu_val_to_freq(u32 val)
 	}
 }
 
+char *roc1_vdsp_val_to_freq(u32 val)
+{
+	static const char * const frequencies[] = {
+		"192M", "307.2M", "468M", "614.4M", "702M", "768M",
+	};
+
+	if (val >= ARRAY_SIZE(frequencies))
+		return "N/A";
+	return (char *)frequencies[val];
+}
+
 char *roc1_vsp_val_to_freq(u32 val)
 {
 	switch (val) {

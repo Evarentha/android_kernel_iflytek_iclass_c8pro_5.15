@@ -390,6 +390,40 @@ static int sprd_rtc_set_aux_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 					 SPRD_RTC_AUXALM_EN, 0);
 	}
 
+#ifdef CONFIG_MITOCHODRIA_RTC_FIX_BASELINE
+	/*
+	 * Mitochodria deep-sleep wake fix: programming the auxiliary alarm
+	 * completes its register handshake asynchronously, ~100-300 ms
+	 * later, and raises the AUXALM status bit. The driver reports that
+	 * completion as RTC_AF, which wakes/aborts deep sleep right after
+	 * suspend entry. Wait out the handshake here and clear the status,
+	 * so only a genuine expiry is ever reported.
+	 */
+	{
+		int i;
+		bool cleared = false;
+
+		/*
+		 * Observed handshake completions arrive between ~0.2 s and
+		 * ~0.9 s after programming depending on power state; cover
+		 * them all so no completion status survives into sleep.
+		 */
+		for (i = 0; i < 100 && !cleared; i++) {
+			unsigned int raw = 0;
+
+			msleep(20);
+			regmap_read(rtc->regmap,
+				    rtc->base + SPRD_RTC_INT_RAW_STS, &raw);
+			if (raw & SPRD_RTC_AUXALM_EN) {
+				regmap_write(rtc->regmap,
+					     rtc->base + SPRD_RTC_INT_CLR,
+					     SPRD_RTC_AUXALM_EN);
+				cleared = true;
+			}
+		}
+	}
+#endif
+
 	return ret;
 }
 
@@ -486,6 +520,41 @@ static int sprd_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	return 0;
 }
 
+#ifdef CONFIG_MITOCHODRIA_RTC_SKIP_PAST_ALARM
+/*
+ * Mitochodria deep-sleep wake fix: with a reset or corrupted RTC baseline
+ * (the counter starts over near zero on every full power cycle while
+ * alarmtimer keeps scheduling wall-clock alarms), an alarm request can
+ * map to an absolute time that is already past. Arming the hardware then
+ * wakes the AP immediately after suspend entry and can break the sleep
+ * cycle entirely. When the requested time is not in the future, leave
+ * both hardware alarms disabled: the system still suspends, the due
+ * timer is handled by any other wake source, and once userspace sets a
+ * sane clock the normal behaviour resumes.
+ */
+static bool sprd_rtc_skip_past_alarm(struct sprd_rtc *rtc, time64_t secs)
+{
+	time64_t now;
+	int ret;
+
+	ret = sprd_rtc_get_secs(rtc, SPRD_RTC_TIME, &now);
+	if (ret) {
+		pr_warn_ratelimited("mitochodria-rtc: skip guard cannot read counter (%d)\n", ret);
+		return false;
+	}
+	if (secs > now + (time64_t)CONFIG_MITOCHODRIA_RTC_WAKE_MIN_LEAD_S)
+		return false;
+
+	pr_debug_ratelimited("mitochodria-rtc: skip arming alarm %lld <= rtc now %lld (+%d s horizon)\n",
+			    secs, now, CONFIG_MITOCHODRIA_RTC_WAKE_MIN_LEAD_S);
+	regmap_write(rtc->regmap, rtc->base + SPRD_RTC_INT_CLR,
+		     SPRD_RTC_ALARM_EN | SPRD_RTC_AUXALM_EN);
+	regmap_update_bits(rtc->regmap, rtc->base + SPRD_RTC_INT_EN,
+			   SPRD_RTC_ALARM_EN | SPRD_RTC_AUXALM_EN, 0);
+	return true;
+}
+#endif
+
 static int sprd_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 {
 	struct sprd_rtc *rtc = dev_get_drvdata(dev);
@@ -495,6 +564,11 @@ static int sprd_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	int ret;
 
 	strlcpy(rtc->alrm_comm, current->comm, sizeof(rtc->alrm_comm));
+
+#ifdef CONFIG_MITOCHODRIA_RTC_SKIP_PAST_ALARM
+	if (alrm->enabled && sprd_rtc_skip_past_alarm(rtc, secs))
+		return 0;
+#endif
 
 	/*
 	 * We have 2 groups alarms: normal alarm and auxiliary alarm. Since
@@ -509,6 +583,35 @@ static int sprd_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	 * should set normal alarm, if not, we should set auxiliary alarm which
 	 * means it is just a wake event.
 	 */
+#ifdef CONFIG_MITOCHODRIA_RTC_NO_AUX_HW_WAKE
+	/*
+	 * On this SC2730 the auxiliary alarm comparator matches the seconds
+	 * field alone: an armed aux alarm fires at the next counter second
+	 * equal to its SEC value, at most one minute later, whatever the
+	 * requested day/hour/min (latch self-test confirms all four fields
+	 * are written correctly - the comparator simply ignores the others).
+	 *
+	 * With MITOCHODRIA_RTC_MAIN_WAKE, fall through to the normal alarm
+	 * below: it is programmed with per-field polling (full tuple
+	 * honoured) and has never shown the seconds-only behaviour. Its
+	 * extra capability - powering up from power-down - only matters
+	 * across poweroff, where the horizon guard keeps heartbeat-class
+	 * alarms unarmed. Without MAIN_WAKE, keep boottime events software-
+	 * only and disable the auxiliary hardware.
+	 */
+	if (!rtc->rtc->aie_timer.enabled || rtc_tm_sub(&aie_time, &alrm->time)) {
+#ifndef CONFIG_MITOCHODRIA_RTC_MAIN_WAKE
+		pr_debug_ratelimited("mitochodria-rtc: skip arming aux wake alarm\n");
+		regmap_write(rtc->regmap, rtc->base + SPRD_RTC_INT_CLR,
+			     SPRD_RTC_AUXALM_EN);
+		return regmap_update_bits(rtc->regmap,
+					  rtc->base + SPRD_RTC_INT_EN,
+					  SPRD_RTC_AUXALM_EN, 0);
+#else
+		pr_debug_ratelimited("mitochodria-rtc: wake event routed to normal alarm\n");
+#endif
+	}
+#endif
 	if (!rtc->rtc->aie_timer.enabled || rtc_tm_sub(&aie_time, &alrm->time))
 		return sprd_rtc_set_aux_alarm(dev, alrm);
 
@@ -604,6 +707,43 @@ static irqreturn_t sprd_rtc_handler(int irq, void *dev_id)
 
 	return IRQ_HANDLED;
 }
+
+#ifdef CONFIG_MITOCHODRIA_RTC_FIX_BASELINE
+/*
+ * Mitochodria RTC baseline repair: on a full power cycle the SC2730 RTC
+ * domain loses its "time is valid" flag while alarmtimer keeps mapping
+ * CLOCK_BOOTTIME/REALTIME alarms through a counter that restarts near
+ * zero. Scheduled wakeups then land seconds away from suspend entry and
+ * break deep sleep. When probe finds the time invalid, seed the counter
+ * with a modern epoch so hctosys and alarm arithmetic stay sane until
+ * userspace sets the real clock.
+ */
+#define MITOCHODRIA_RTC_BASE_EPOCH	1767225600LL /* 2026-01-01 00:00:00 UTC */
+
+static int sprd_rtc_init_baseline(struct sprd_rtc *rtc)
+{
+	int ret;
+
+	ret = sprd_rtc_set_secs(rtc, SPRD_RTC_TIME, MITOCHODRIA_RTC_BASE_EPOCH);
+	if (ret)
+		return ret;
+
+	ret = regmap_write(rtc->regmap, rtc->base + SPRD_RTC_PWR_CTRL,
+			   SPRD_RTC_POWER_STS_CLEAR);
+	if (ret)
+		return ret;
+
+	ret = regmap_write(rtc->regmap, rtc->base + SPRD_RTC_PWR_CTRL,
+			   SPRD_RTC_POWER_STS_VALID);
+	if (ret)
+		return ret;
+
+	rtc->valid = true;
+	dev_warn(rtc->dev, "mitochodria-rtc: seeded invalid RTC baseline to %lld\n",
+		 MITOCHODRIA_RTC_BASE_EPOCH);
+	return 0;
+}
+#endif
 
 static int sprd_rtc_check_power_down(struct sprd_rtc *rtc)
 {
@@ -702,6 +842,16 @@ static int sprd_rtc_probe(struct platform_device *pdev)
 		return ret;
 	}
 
+#ifdef CONFIG_MITOCHODRIA_RTC_FIX_BASELINE
+	if (!rtc->valid) {
+		ret = sprd_rtc_init_baseline(rtc);
+		if (ret) {
+			dev_err(&pdev->dev, "failed to seed RTC baseline\n");
+			return ret;
+		}
+	}
+#endif
+
 	ret = devm_request_threaded_irq(&pdev->dev, rtc->irq, NULL,
 					sprd_rtc_handler,
 					IRQF_ONESHOT | IRQF_EARLY_RESUME,
@@ -733,11 +883,31 @@ static int sprd_rtc_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id sprd_rtc_of_match[] = {
+	{ .compatible = "sprd,sc2730-rtc", },
 	{ .compatible = "sprd,sc2731-rtc", },
 	{ .compatible = "sprd,ump96xx-rtc", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, sprd_rtc_of_match);
+
+#ifdef CONFIG_MITOCHODRIA_RTC_FIX_BASELINE
+/*
+ * Mitochodria poweroff safety: the auxiliary/main alarm comparators can
+ * re-power the PMIC after poweroff (the aux comparator matches the
+ * seconds field alone, so any armed alarm asserts within a minute).
+ * Disarm and lock everything at shutdown so the device stays off.
+ */
+static void sprd_rtc_shutdown(struct platform_device *pdev)
+{
+	struct sprd_rtc *rtc = platform_get_drvdata(pdev);
+
+	regmap_write(rtc->regmap, rtc->base + SPRD_RTC_INT_CLR,
+		     SPRD_RTC_INT_MASK);
+	regmap_update_bits(rtc->regmap, rtc->base + SPRD_RTC_INT_EN,
+			   SPRD_RTC_INT_MASK, 0);
+	sprd_rtc_lock_alarm(rtc, true);
+}
+#endif
 
 static struct platform_driver sprd_rtc_driver = {
 	.driver = {
@@ -746,6 +916,9 @@ static struct platform_driver sprd_rtc_driver = {
 	},
 	.probe	= sprd_rtc_probe,
 	.remove = sprd_rtc_remove,
+#ifdef CONFIG_MITOCHODRIA_RTC_FIX_BASELINE
+	.shutdown = sprd_rtc_shutdown,
+#endif
 };
 module_platform_driver(sprd_rtc_driver);
 

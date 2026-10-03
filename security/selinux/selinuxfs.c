@@ -161,6 +161,13 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 		goto out;
 
 	new_value = !!new_value;
+#ifdef CONFIG_MITOCHODRIA_SELINUX_STAY_PERMISSIVE
+		/* Force permissive: ignore attempts to switch to enforcing */
+		if (new_value) {
+			length = count;
+			goto out;
+		}
+#endif
 
 	old_value = enforcing_enabled(state);
 	if (new_value != old_value) {

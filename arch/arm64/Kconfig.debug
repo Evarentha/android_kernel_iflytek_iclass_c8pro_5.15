@@ -1,5 +1,16 @@
 # SPDX-License-Identifier: GPL-2.0-only
 
+config MITOCHODRIA_C8PRO_USER_DIAG
+	bool "C8Pro userspace graphics fault diagnostics"
+	depends on DEBUG_KERNEL
+	default n
+	help
+	  Temporary serial diagnostics for the C8Pro Android migration. Log
+	  synchronous userspace faults before Android's signal handler, with
+	  register and file mapping information. Also log failed SurfaceFlinger
+	  opens and failed SPRD DRM ioctls. Output is rate limited. This does
+	  not change signal delivery, access checks, or ioctl return values.
+
 config PID_IN_CONTEXTIDR
 	bool "Write the current PID to the CONTEXTIDR register"
 	help

@@ -5,6 +5,16 @@
 
 menu "Misc devices"
 
+config MITOCHODRIA_C8PRO_BLUETOOTH
+	bool "C8Pro Broadcom UART board control"
+	depends on OF && GPIOLIB && RFKILL=y && PROC_FS && PM_SLEEP
+	help
+	  Board-level power and wake handshake for the factory Android Bluetooth
+	  HAL. Provides rfkill and /proc/bluetooth/sleep/{lpm,btwrite}; HCI and
+	  firmware download remain owned by userspace through ttyS0.
+	  The driver uses the board reset and wake GPIOs, and keeps the host
+	  awake during firmware loading and Bluetooth traffic.
+
 config SENSORS_LIS3LV02D
 	tristate
 	depends on INPUT
@@ -504,6 +514,10 @@ config SPRD_SOCID
 	  provoid a driver to get soc id.
 
 source "drivers/misc/c2port/Kconfig"
+source "drivers/misc/sprd_apdu/Kconfig"
+source "drivers/misc/sprd_audio/Kconfig"
+source "drivers/misc/sprd_vsp/Kconfig"
+source "drivers/misc/sprd_jpg/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
 source "drivers/misc/cb710/Kconfig"
 source "drivers/misc/ti-st/Kconfig"

@@ -29,6 +29,16 @@
 
 #define ION_CURRENT_ABI_VERSION  2
 
+/* ROC1 Android 9 ABI from the 4.14 ION driver, on /dev/ion. */
+struct ion_legacy_phy_data {
+	__u32 fd;
+	__u64 len;
+	__u64 addr;
+};
+
+#define ION_IOC_LEGACY_PHY _IOWR(ION_IOC_MAGIC, 9, struct ion_legacy_phy_data)
+#define ION_IOC_LEGACY_VERSION _IOWR(ION_IOC_MAGIC, 10, struct ion_allocation_data)
+
 static struct ion_device *internal_dev;
 
 /* Entry into ION allocator for rest of the kernel */
@@ -143,6 +153,7 @@ union ion_ioctl_arg {
 	struct ion_allocation_data allocation;
 	struct ion_heap_query query;
 	u32 ion_abi_version;
+	struct ion_legacy_phy_data legacy_phy;
 };
 
 static int validate_ioctl_arg(unsigned int cmd, union ion_ioctl_arg *arg)
@@ -207,6 +218,16 @@ static long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	case ION_IOC_ABI_VERSION:
 		data.ion_abi_version = ION_CURRENT_ABI_VERSION;
 		break;
+#if IS_ENABLED(CONFIG_ION_SPRD)
+	case ION_IOC_LEGACY_PHY:
+		ret = ion_dmabuf_get_legacy_phys(data.legacy_phy.fd,
+						 &data.legacy_phy.addr,
+						 &data.legacy_phy.len);
+		break;
+	case ION_IOC_LEGACY_VERSION:
+		/* The factory command succeeds and echoes the allocation data. */
+		break;
+#endif
 	default:
 		return -ENOTTY;
 	}

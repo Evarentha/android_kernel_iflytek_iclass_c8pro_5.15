@@ -521,6 +521,7 @@ static int sprd_thm_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id sprd_thermal_of_match[] = {
+	{ .compatible = "sprd,roc1-thermal", .data = &ums512_data },
 	{ .compatible = "sprd,ums512-thermal", .data = &ums512_data },
 	{ },
 };

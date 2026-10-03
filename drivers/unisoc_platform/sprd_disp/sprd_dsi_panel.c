@@ -5,6 +5,7 @@
 
 #include <linux/backlight.h>
 #include <linux/module.h>
+#include <linux/notifier.h>
 #include <linux/of.h>
 #include <linux/of_gpio.h>
 #include <video/of_display_timing.h>
@@ -58,12 +59,49 @@ static int sprd_panel_send_cmds(struct mipi_dsi_device *dsi,
 	return 0;
 }
 
+
+static DEFINE_MUTEX(panel_notifier_lock);
+static RAW_NOTIFIER_HEAD(panel_notifier_chain);
+
+int panel_notifier_register(struct notifier_block *nb)
+{
+	int err;
+
+	mutex_lock(&panel_notifier_lock);
+	err = raw_notifier_chain_register(&panel_notifier_chain, nb);
+	mutex_unlock(&panel_notifier_lock);
+
+	return err;
+}
+EXPORT_SYMBOL(panel_notifier_register);
+
+int panel_notifier_unregister(struct notifier_block *nb)
+{
+	int err;
+
+	mutex_lock(&panel_notifier_lock);
+	err = raw_notifier_chain_unregister(&panel_notifier_chain, nb);
+	mutex_unlock(&panel_notifier_lock);
+
+	return err;
+}
+EXPORT_SYMBOL(panel_notifier_unregister);
+
+static void panel_notifier_event(unsigned long event, void *data)
+{
+	mutex_lock(&panel_notifier_lock);
+	raw_notifier_call_chain(&panel_notifier_chain, event, data);
+	mutex_unlock(&panel_notifier_lock);
+}
+
+
 static int sprd_panel_unprepare(struct drm_panel *p)
 {
 	struct sprd_panel *panel = to_sprd_panel(p);
 	struct gpio_timing *timing;
 	int items, i;
 
+	panel_notifier_event(1, NULL);
 	DRM_INFO("%s()\n", __func__);
 
 	if (!panel->info.gpio_request_result) {
@@ -90,7 +128,13 @@ static int sprd_panel_unprepare(struct drm_panel *p)
 		}
 	}
 
-	regulator_disable(panel->supply);
+	if (panel->supply_enabled) {
+		int ret = regulator_disable(panel->supply);
+
+		if (ret)
+			return ret;
+		panel->supply_enabled = false;
+	}
 
 	return 0;
 }
@@ -142,11 +186,15 @@ static int sprd_panel_prepare(struct drm_panel *p)
 	struct gpio_timing *timing;
 	int items, i, ret;
 
+	panel_notifier_event(2, NULL);
 	DRM_INFO("%s()\n", __func__);
 
-	ret = regulator_enable(panel->supply);
-	if (ret < 0)
-		DRM_ERROR("enable lcd regulator failed\n");
+	if (!panel->supply_enabled) {
+		ret = regulator_enable(panel->supply);
+		if (ret < 0)
+			return ret;
+		panel->supply_enabled = true;
+	}
 
 	if (!panel->info.gpio_request_result) {
 		DRM_ERROR("GPIO request failed, do not config again\n");
@@ -502,26 +550,26 @@ static int sprd_panel_gpio_request(struct device *dev,
 
 	panel->info.avdd_gpio = devm_gpiod_get_optional(dev,
 					"avdd", GPIOD_ASIS);
-	if (IS_ERR_OR_NULL(panel->info.avdd_gpio)) {
+	if (IS_ERR(panel->info.avdd_gpio)) {
 		panel->info.gpio_request_result = false;
-		DRM_WARN("can't get panel avdd gpio: %ld\n",
-				 PTR_ERR(panel->info.avdd_gpio));
+		return dev_err_probe(dev, PTR_ERR(panel->info.avdd_gpio),
+				     "can't get panel avdd gpio\n");
 	}
 
 	panel->info.avee_gpio = devm_gpiod_get_optional(dev,
 					"avee", GPIOD_ASIS);
-	if (IS_ERR_OR_NULL(panel->info.avee_gpio)) {
+	if (IS_ERR(panel->info.avee_gpio)) {
 		panel->info.gpio_request_result = false;
-		DRM_WARN("can't get panel avee gpio: %ld\n",
-				 PTR_ERR(panel->info.avee_gpio));
+		return dev_err_probe(dev, PTR_ERR(panel->info.avee_gpio),
+				     "can't get panel avee gpio\n");
 	}
 
 	panel->info.reset_gpio = devm_gpiod_get_optional(dev,
 					"reset", GPIOD_ASIS);
-	if (IS_ERR_OR_NULL(panel->info.reset_gpio)) {
+	if (IS_ERR(panel->info.reset_gpio)) {
 		panel->info.gpio_request_result = false;
-		DRM_WARN("can't get panel reset gpio: %ld\n",
-				 PTR_ERR(panel->info.reset_gpio));
+		return dev_err_probe(dev, PTR_ERR(panel->info.reset_gpio),
+				     "can't get panel reset gpio\n");
 	}
 
 	return 0;
@@ -997,6 +1045,16 @@ static int sprd_panel_device_create(struct device *parent,
 	return device_register(&panel->dev);
 }
 
+static void sprd_panel_release_supply(void *data)
+{
+	struct sprd_panel *panel = data;
+
+	if (panel->supply_enabled) {
+		regulator_disable(panel->supply);
+		panel->supply_enabled = false;
+	}
+}
+
 static int sprd_panel_probe(struct mipi_dsi_device *slave)
 {
 	struct sprd_panel *panel;
@@ -1044,8 +1102,7 @@ static int sprd_panel_probe(struct mipi_dsi_device *slave)
 
 	ret = sprd_panel_gpio_request(&slave->dev, panel);
 	if (ret) {
-		DRM_WARN("gpio is not ready, panel probe deferred\n");
-		return -EPROBE_DEFER;
+		return ret;
 	}
 
 	ret = sprd_panel_device_create(&slave->dev, panel);
@@ -1053,6 +1110,15 @@ static int sprd_panel_probe(struct mipi_dsi_device *slave)
 		return ret;
 
 	ret = sprd_oled_backlight_init(panel);
+	if (ret)
+		return ret;
+
+	/* The first modeset inherits the bootloader's already enabled panel. */
+	ret = regulator_enable(panel->supply);
+	if (ret)
+		return ret;
+	panel->supply_enabled = true;
+	ret = devm_add_action_or_reset(&slave->dev, sprd_panel_release_supply, panel);
 	if (ret)
 		return ret;
 

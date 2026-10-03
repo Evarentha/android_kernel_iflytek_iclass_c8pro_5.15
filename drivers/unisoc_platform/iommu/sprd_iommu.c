@@ -637,13 +637,17 @@ static struct sprd_iommu_dev *sprd_iommu_get_subnode_with_idx(
 
 static bool sprd_iommu_target_buf(struct sprd_iommu_dev *iommu_dev,
 						void *buf_addr,
+						struct sg_table *table,
+						size_t size,
 						unsigned long *iova_addr)
 {
 	int index = 0;
 
 	for (index = 0; index < SPRD_MAX_SG_CACHED_CNT; index++) {
 		if (iommu_dev->sg_pool.slot[index].status == SG_SLOT_USED &&
-		   iommu_dev->sg_pool.slot[index].buf_addr == buf_addr) {
+		   iommu_dev->sg_pool.slot[index].buf_addr == buf_addr &&
+		   iommu_dev->sg_pool.slot[index].sg_table_addr == (unsigned long)table &&
+		   iommu_dev->sg_pool.slot[index].iova_size == size) {
 			*iova_addr = iommu_dev->sg_pool.slot[index].iova_addr;
 			iommu_dev->sg_pool.slot[index].map_usrs++;
 			break;
@@ -907,6 +911,7 @@ int sprd_iommu_map(struct device *dev, struct sprd_iommu_map_data *data)
 	* if yes, return cached iova directly, otherwise, alloc new iova for it;
 	*/
 	buf_cached = sprd_iommu_target_buf(iommu_dev, data->buf,
+						table, data->iova_size,
 						(unsigned long *)&iova);
 	if (buf_cached) {
 		data->iova_addr = iova;
@@ -1007,7 +1012,30 @@ int sprd_iommu_map_v2(struct device *dev, struct sprd_iommu_map_data *data,
 
 	spin_lock_irqsave(&iommu_dev->pgt_lock, flag);
 
-	if (buftype == SPRD_IOMMU_BUFTYPE_CARVEOUT)
+	if (buftype == SPRD_IOMMU_BUFTYPE_SG_TABLE) {
+		/* Explicit exporter-owned SG table; buf is only a cache key. */
+		table = data->table;
+		if (!table || !table->sgl || !table->nents) {
+			ret = -EINVAL;
+		} else {
+			struct scatterlist *sg;
+			size_t total = 0;
+			unsigned int i;
+
+			/* The low-level mapper writes all SG pages, not just iova_size. */
+			for_each_sg(table->sgl, sg, table->nents, i) {
+				if (sg->offset || !IS_ALIGNED(sg->length, PAGE_SIZE) ||
+				    total > data->iova_size ||
+				    sg->length > data->iova_size - total) {
+					ret = -EINVAL;
+					break;
+				}
+				total += sg->length;
+			}
+			if (total != data->iova_size)
+				ret = -EINVAL;
+		}
+	} else if (buftype == SPRD_IOMMU_BUFTYPE_CARVEOUT)
 		ret = sprd_iommu_carveout_get_sg(data->buf, &table);
 	else
 		ret = sprd_iommu_get_sg(data->buf, &table);
@@ -1021,6 +1049,7 @@ int sprd_iommu_map_v2(struct device *dev, struct sprd_iommu_map_data *data,
 	}
 
 	buf_cached = sprd_iommu_target_buf(iommu_dev, data->buf,
+						table, data->iova_size,
 						(unsigned long *)&iova);
 	if (buf_cached) {
 		data->iova_addr = iova;
@@ -1115,7 +1144,12 @@ int sprd_iommu_map_single_page(struct device *dev, struct sprd_iommu_map_data *d
 
 	spin_lock_irqsave(&iommu_dev->pgt_lock, flag);
 
-	ret = sprd_iommu_get_sg(data->buf, &table);
+	/* New callers pass their SG table without a legacy private-buffer cast. */
+	if (data->table) {
+		table = data->table;
+	} else {
+		ret = sprd_iommu_get_sg(data->buf, &table);
+	}
 	if (ret || table == NULL) {
 		IOMMU_ERR("%s get sg error, buf %p size 0x%zx ret %d table %p\n",
 			  iommu_dev->init_data->name,
@@ -1130,6 +1164,7 @@ int sprd_iommu_map_single_page(struct device *dev, struct sprd_iommu_map_data *d
 	 * if yes, return cached iova directly, otherwise, alloc new iova for it;
 	 */
 	buf_cached = sprd_iommu_target_buf(iommu_dev, data->buf,
+						NULL, data->iova_size,
 						(unsigned long *)&iova);
 	if (buf_cached) {
 		data->iova_addr = iova;
@@ -1171,7 +1206,7 @@ int sprd_iommu_map_single_page(struct device *dev, struct sprd_iommu_map_data *d
 	iommu_dev->map_count++;
 	data->iova_addr = iova;
 	buf_insert = sprd_iommu_insert_slot(iommu_dev,
-				(unsigned long)table,
+				0, /* sink mapping, not the exporter's SG pages */
 				data->buf,
 				data->iova_addr,
 				data->iova_size);
@@ -1242,6 +1277,7 @@ int sprd_iommu_map_with_idx(
 	/* if yes, return cached iova directly, otherwise, */
 	/* alloc new iova for it;*/
 	buf_cached = sprd_iommu_target_buf(iommu_dev, data->buf,
+						table, data->iova_size,
 						(unsigned long *)&iova);
 	if (buf_cached) {
 		data->iova_addr = iova;

@@ -386,6 +386,51 @@ static const struct dma_buf_ops dma_buf_ops = {
 	.get_flags = ion_dma_buf_get_flags,
 };
 
+struct ion_buffer *ion_dmabuf_to_buffer(struct dma_buf *dmabuf)
+{
+	struct ion_buffer *buffer;
+
+	/* Exporter names are diagnostic strings, not a private-layout ABI. */
+	if (!dmabuf || dmabuf->ops != &dma_buf_ops)
+		return ERR_PTR(-EINVAL);
+	buffer = dmabuf->priv;
+	if (!buffer || !buffer->heap || !buffer->size ||
+	    !buffer->sg_table || !buffer->sg_table->sgl ||
+	    !buffer->sg_table->nents)
+		return ERR_PTR(-EINVAL);
+	return buffer;
+}
+EXPORT_SYMBOL_GPL(ion_dmabuf_to_buffer);
+
+int ion_dmabuf_get_legacy_phys(int fd, u64 *addr, u64 *len)
+{
+	struct dma_buf *dmabuf;
+	struct ion_buffer *buffer;
+	int ret = 0;
+
+	dmabuf = dma_buf_get(fd);
+	if (IS_ERR(dmabuf))
+		return -EPERM;
+
+	/* Only ION owns the private ion_buffer layout. */
+	if (dmabuf->ops != &dma_buf_ops) {
+		ret = -EINVAL;
+		goto out;
+	}
+	buffer = dmabuf->priv;
+	if (!buffer->sg_table || !buffer->sg_table->sgl) {
+		ret = -EINVAL;
+		goto out;
+	}
+
+	/* Preserve the factory ABI: first SG physical address and total size. */
+	*addr = sg_phys(buffer->sg_table->sgl);
+	*len = buffer->size;
+out:
+	dma_buf_put(dmabuf);
+	return ret;
+}
+
 struct dma_buf *ion_dmabuf_alloc(struct ion_device *dev, size_t len,
 				 unsigned int heap_id_mask,
 				 unsigned int flags)
