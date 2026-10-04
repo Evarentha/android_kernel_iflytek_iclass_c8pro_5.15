@@ -1290,7 +1290,9 @@ struct snd_pcm_startup_paras {
 	struct sbcenc_param_t sbcenc_para;
 	struct ivsense_smartpa_t ivs_smtpa;
 	struct vbc_iis_mst_sel_para mst_sel_para[IIS_MST_SEL_ID_MAX];
+#ifndef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
 	u16 voice_record_type;
+#endif
 };
 
 struct sprd_vbc_stream_startup_shutdown {

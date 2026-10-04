@@ -833,6 +833,14 @@ static void fill_dsp_startup_data(struct vbc_codec_priv *vbc_codec,
 	info->stream = stream;
 	para->dac_id = get_startup_scene_dac_id(scene_id);
 
+#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+	/* Factory boot/kernel dsp_startup stores this selector verbatim.
+	 * Its debug print shifts by 8, but the transmitted field does not.
+	 */
+	para->adc_id = vbc_codec->dmic_chn_sel ?
+		(enum VBC_AD_ID_E)vbc_codec->dmic_chn_sel :
+		get_startup_scene_adc_id(scene_id);
+#else
 	pr_debug("adc_id %d, dmic_chn_sel 0x%x\n", para->adc_id,
 		 vbc_codec->dmic_chn_sel << VBC_DMIC_ADC_ID_SHIFT);
 	if (vbc_codec->dmic_chn_sel)
@@ -840,6 +848,7 @@ static void fill_dsp_startup_data(struct vbc_codec_priv *vbc_codec,
 			vbc_codec->dmic_chn_sel << VBC_DMIC_ADC_ID_SHIFT;
 	else
 		para->adc_id = get_startup_scene_adc_id(scene_id);
+#endif
 
 	/* vbc_if or iis */
 	for (i = VBC_MUX_ADC0_SOURCE; i < VBC_MUX_ADC_SOURCE_MAX; i++) {
@@ -951,7 +960,9 @@ static void fill_dsp_startup_data(struct vbc_codec_priv *vbc_codec,
 		stream, vbc_codec);
 	para->ivs_smtpa.iv_adc_id = get_ivsense_adc_id();
 	/* voice capture type: 1-downlink, 2-uplink, 3-mix down/up link */
+#ifndef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
 	para->voice_record_type = vbc_codec->voice_capture_type + 1;
+#endif
 }
 
 static int dsp_startup(struct vbc_codec_priv *vbc_codec,

@@ -1362,6 +1362,18 @@ int vbc_dsp_func_startup(int scene_id, int stream,
 {
 	int ret;
 
+#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+	/* Offsets verified against the shipped 4.14.98 boot image. */
+	BUILD_BUG_ON(sizeof(*startup_info) != 0x268);
+	BUILD_BUG_ON(offsetof(struct sprd_vbc_stream_startup_shutdown,
+		startup_para.adc_id) != 0x2c);
+	BUILD_BUG_ON(offsetof(struct sprd_vbc_stream_startup_shutdown,
+		startup_para.mst_sel_para) != 0x248);
+	pr_info("C8AUDIO factory startup scene=%d stream=%d bytes=%zu adc=%x\n",
+		scene_id, stream, sizeof(*startup_info),
+		startup_info->startup_para.adc_id);
+#endif
+
 	ret = aud_send_cmd(AMSG_CH_VBC_CTL, scene_id, stream,
 		SND_VBC_DSP_FUNC_STARTUP,
 		startup_info, sizeof(struct sprd_vbc_stream_startup_shutdown),
