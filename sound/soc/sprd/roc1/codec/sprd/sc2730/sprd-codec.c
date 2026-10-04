@@ -784,6 +784,46 @@ static void load_ocp_pfw_cfg(struct sprd_codec_priv *sprd_codec)
 	}
 }
 
+#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+static int dmic_clk_event(struct snd_soc_dapm_widget *w, int event,
+			  unsigned int shift, unsigned int mask)
+{
+	struct snd_soc_component *codec = snd_soc_dapm_to_component(w->dapm);
+	unsigned int mode;
+	int ret;
+
+	switch (event) {
+	case SND_SOC_DAPM_PRE_PMU:
+		/* C8Pro factory codec selects mode 2 before enabling the DMIC. */
+		mode = 2;
+		break;
+	case SND_SOC_DAPM_POST_PMD:
+		mode = 0;
+		break;
+	default:
+		return -EINVAL;
+	}
+	ret = snd_soc_component_update_bits(codec, SOC_REG(AUD_DMIC_CTL),
+					    mask << shift, mode << shift);
+	pr_info("C8AUDIO %s clock mode=%u ret=%d\n", w->name, mode, ret);
+	return ret < 0 ? ret : 0;
+}
+
+static int dmic0_clk_event(struct snd_soc_dapm_widget *w,
+			   struct snd_kcontrol *kcontrol, int event)
+{
+	return dmic_clk_event(w, event, ADC_DMIC_CLK_MODE,
+			      ADC_DMIC_CLK_MODE_MASK);
+}
+
+static int dmic1_clk_event(struct snd_soc_dapm_widget *w,
+			   struct snd_kcontrol *kcontrol, int event)
+{
+	return dmic_clk_event(w, event, ADC1_DMIC_CLK_MODE,
+			      ADC1_DMIC_CLK_MODE_MASK);
+}
+#endif
+
 static int das_dc_os_event(struct snd_soc_dapm_widget *w,
 			    struct snd_kcontrol *kcontrol, int event)
 {
@@ -2622,10 +2662,19 @@ static const struct snd_soc_dapm_widget sprd_codec_dapm_widgets[] = {
 	SND_SOC_DAPM_INPUT("DMIC1 Pin"),
 
 	/* add DMIC */
+#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+	SND_SOC_DAPM_PGA_S("DMIC Switch", 3, SOC_REG(AUD_DMIC_CTL),
+		ADC_DMIC_EN, 0, dmic0_clk_event,
+		SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
+	SND_SOC_DAPM_PGA_S("DMIC1 Switch", 3, SOC_REG(AUD_DMIC_CTL),
+		ADC1_DMIC1_EN, 0, dmic1_clk_event,
+		SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
+#else
 	SND_SOC_DAPM_PGA_S("DMIC Switch", 3, SOC_REG(AUD_DMIC_CTL),
 		ADC_DMIC_EN, 0, NULL, 0),
 	SND_SOC_DAPM_PGA_S("DMIC1 Switch", 3, SOC_REG(AUD_DMIC_CTL),
 		ADC1_DMIC1_EN, 0, NULL, 0),
+#endif
 	SND_SOC_DAPM_SWITCH("ADC-DAC Adie Loop",
 		SND_SOC_NOPM, 0, 0, &loop_controls[0]),
 	SND_SOC_DAPM_SWITCH("ADC1-DAC Adie Loop",
