@@ -144,7 +144,7 @@ static bool check_block(struct file *fp, loff_t *pos, loff_t block_end, unsigned
 	return strcmp(expected_sha256, hash_str) == 0;
 }
 
-static __always_inline bool check_v2_signature(char *path,
+static __always_inline int check_v2_signature(char *path,
                                                unsigned expected_size,
                                                const char *expected_sha256)
 {
@@ -160,13 +160,15 @@ static __always_inline bool check_v2_signature(char *path,
 
 	struct file *fp = ksu_filp_open_nonotify(path, O_RDONLY | O_NOATIME);
 	if (IS_ERR(fp)) {
-		pr_err("open %s error.\n", path);
-		return false;
+		pr_err("open %s error: %ld\n", path, PTR_ERR(fp));
+		return PTR_ERR(fp);
 	}
 
 	file_size = generic_file_llseek(fp, 0, SEEK_END);
-	if (file_size < 0)
-		goto clean;
+	if (file_size < 0) {
+		filp_close(fp, 0);
+		return file_size;
+	}
 
 	// https://en.wikipedia.org/wiki/Zip_(file_format)#End_of_central_directory_record_(EOCD)
 	// Buffered backward search (single read) instead of the upstream
@@ -186,11 +188,16 @@ static __always_inline bool check_v2_signature(char *path,
 		eocd_buffer = kvmalloc(search_size, GFP_KERNEL);
 		if (!eocd_buffer) {
 			pr_err("error: cannot allocate memory for eocd\n");
-			goto clean;
+			filp_close(fp, 0);
+			return -ENOMEM;
 		}
 
 		pos = file_size - search_size;
-		kernel_read(fp, eocd_buffer, search_size, &pos);
+		if (kernel_read(fp, eocd_buffer, search_size, &pos) != search_size) {
+			kvfree(eocd_buffer);
+			filp_close(fp, 0);
+			return -EIO;
+		}
 
 		if (search_size >= eocd_min_size) {
 			long j;
@@ -372,7 +379,7 @@ int get_pkg_from_apk_path(char *pkg, const char *path)
 	return 0;
 }
 
-bool is_manager_apk(char *path)
+int is_manager_apk(char *path)
 {
 #ifdef KSU_MANAGER_PACKAGE
 	char pkg[KSU_MAX_PACKAGE_NAME];

@@ -8,6 +8,8 @@
 #include <linux/string.h>
 #include <linux/types.h>
 #include <linux/version.h>
+#include <linux/mutex.h>
+#include <linux/workqueue.h>
 
 #include "policy/allowlist.h"
 #include "manager/apk_sign.h"
@@ -62,6 +64,15 @@ struct apk_path_hash {
 };
 
 static struct list_head apk_path_hash_list = LIST_HEAD_INIT(apk_path_hash_list);
+static DEFINE_MUTEX(throne_lock);
+static bool manager_io_retry;
+static unsigned int manager_retry_count;
+
+static void retry_manager(struct work_struct *work)
+{
+	track_throne(false);
+}
+static DECLARE_DELAYED_WORK(manager_retry_work, retry_manager);
 
 struct my_dir_context {
 	struct dir_context ctx;
@@ -82,7 +93,6 @@ struct my_dir_context {
 #define FILLDIR_ACTOR_CONTINUE 0
 #define FILLDIR_ACTOR_STOP -EINVAL
 #endif
-extern bool is_manager_apk(char *path);
 FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 							int namelen, loff_t off, u64 ino,
 							unsigned int d_type)
@@ -138,10 +148,17 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 				}
 			}
 
-			bool is_manager = is_manager_apk(dirpath);
+			int is_manager = is_manager_apk(dirpath);
 			pr_info("Found new base.apk at path: %s, is_manager: %d\n", dirpath,
 					is_manager);
-			if (is_manager) {
+			/* Do not turn a transient open/read failure into a permanent
+			 * negative signature cache entry, or grant on a negative errno.
+			 */
+			if (is_manager < 0) {
+				manager_io_retry = true;
+				return FILLDIR_ACTOR_CONTINUE;
+			}
+			if (is_manager > 0) {
 				crown_manager(dirpath, my_ctx->private_data);
 				*my_ctx->stop = 1;
 
@@ -262,6 +279,9 @@ static bool is_uid_exist(uid_t uid, char *package, void *data)
 
 void track_throne(bool prune_only)
 {
+	/* Package notifications and the bounded retry share the APK cache. */
+	mutex_lock(&throne_lock);
+	manager_io_retry = false;
 	const struct cred *old_cred = override_creds(ksu_cred);
 	struct file *fp = filp_open(SYSTEM_PACKAGES_LIST_PATH, O_RDONLY, 0);
 	if (IS_ERR(fp)) {
@@ -358,6 +378,13 @@ out:
 	}
 out_revert_cred:
 	revert_creds(old_cred);
+	if (IS_ENABLED(CONFIG_KSU_C8PRO_DIAGNOSTIC) && manager_io_retry &&
+	    !ksu_is_manager_appid_valid() && manager_retry_count < 12) {
+		manager_retry_count++;
+		pr_info("manager APK access retry %u/12 in 5s\n", manager_retry_count);
+		schedule_delayed_work(&manager_retry_work, 5 * HZ);
+	}
+	mutex_unlock(&throne_lock);
 }
 
 void __init ksu_throne_tracker_init()
@@ -372,5 +399,5 @@ void __init ksu_throne_tracker_init()
 
 void __exit ksu_throne_tracker_exit()
 {
-	// nothing to do
+	cancel_delayed_work_sync(&manager_retry_work);
 }
