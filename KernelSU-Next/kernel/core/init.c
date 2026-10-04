@@ -40,6 +40,7 @@ int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,
 	ksu_handle_execveat_ksud(fd, filename_ptr,
 				 (struct user_arg_ptr *)argv,
 				 (struct user_arg_ptr *)envp, flags);
+	ksu_adb_root_handle_execveat_manual(filename_ptr, envp);
 	return ksu_handle_execveat_sucompat(fd, filename_ptr, argv, envp,
 					    flags);
 }

@@ -8,11 +8,15 @@
 #include <linux/ptrace.h>
 #include <linux/static_key.h>
 #include <linux/slab.h>
+#include <linux/fs.h>
+#include <linux/sched.h>
+#include <linux/sched/task_stack.h>
 
 #include "adb_root.h"
 #include "arch.h"
 #include "policy/feature.h"
 #include "selinux/selinux.h"
+#include "runtime/ksud.h"
 
 #include "klog.h" // IWYU pragma: keep
 
@@ -196,6 +200,76 @@ long ksu_adb_root_handle_execveat(struct pt_regs *regs)
                 (unsigned long *)&PT_REGS_SYSCALL_PARM4(regs));
     }
     return 0;
+}
+
+int ksu_adb_root_handle_execveat_manual(struct filename **filename,
+				      struct user_arg_ptr *envp)
+{
+	struct filename *replacement;
+	unsigned long env;
+	long ret;
+
+	if (!static_branch_unlikely(&ksu_adb_root) || !filename ||
+	    IS_ERR_OR_NULL(*filename) || !envp || current->pid == 1 ||
+	    !uid_eq(current_euid(), GLOBAL_ROOT_UID) ||
+	    task_ppid_nr(current) != 1 || !is_init(current_cred()))
+		return 0;
+#ifdef CONFIG_COMPAT
+	/* The envp pointer width belongs to the calling init, not the new ELF. */
+	if (envp->is_compat)
+		return 0;
+#endif
+	if (IS_ENABLED(CONFIG_KSU_C8PRO_DIAGNOSTIC)) {
+		struct path path;
+		struct inode *inode;
+		bool valid;
+
+		if (strcmp((*filename)->name, "/system/bin/adbd"))
+			return 0;
+		/* Android 9's factory adbd is static and ignores LD_PRELOAD.
+		 * Use the separately installed, verified compatibility copy only
+		 * for init's adbd service while the manager's feature is enabled.
+		 */
+		ret = kern_path("/data/adb/ksu/bin/adbd-root", LOOKUP_FOLLOW, &path);
+		if (ret)
+			goto skip;
+		inode = d_inode(path.dentry);
+		valid = S_ISREG(inode->i_mode) &&
+			uid_eq(inode->i_uid, GLOBAL_ROOT_UID) &&
+			!(inode->i_mode & (S_IWGRP | S_IWOTH)) &&
+			(inode->i_mode & S_IXUSR);
+		path_put(&path);
+		if (!valid) {
+			ret = -EACCES;
+			goto skip;
+		}
+		replacement = getname_kernel("/data/adb/ksu/bin/adbd-root");
+		if (IS_ERR(replacement)) {
+			ret = PTR_ERR(replacement);
+			goto skip;
+		}
+		putname(*filename);
+		*filename = replacement;
+	} else {
+		const char *name = (*filename)->name;
+		size_t len = strlen(name);
+
+		if (len < 5 || strcmp(name + len - 5, "/adbd") ||
+		    is_libadbroot_ok() != 1)
+			return 0;
+		env = (unsigned long)envp->ptr.native;
+		ret = setup_ld_preload(task_pt_regs(current), &env);
+		if (ret)
+			goto skip;
+		/* fs/exec.c consumes its local user_arg_ptr, not syscall regs. */
+		envp->ptr.native = (const char __user *const __user *)env;
+	}
+	escape_to_root_for_adb_root();
+	pr_info("adb_root: manual init exec selected %s\n", (*filename)->name);
+	return 0;
+skip:
+	pr_warn("adb_root: manual setup failed (%ld), keeping stock adbd\n", ret);
+	return 0;
 }
 
 static int kernel_adb_root_feature_get(u64 *value)
