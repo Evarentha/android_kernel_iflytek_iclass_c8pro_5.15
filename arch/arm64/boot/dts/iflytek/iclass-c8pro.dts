@@ -2715,6 +2715,11 @@
 				pinctrl-1 = <0x8c>;
 				phandle = <0x115>;
 
+				front_camera_mclk: front-camera-mclk {
+					pins = "ROC1_CMMCLK2";
+					function = "func1";
+				};
+
 				vbc_iis3_0: iis-matrix-cfg-inf0@a {
 					pins = "ROC1_IIS_INF0_SYS_SEL";
 					sprd,control = <0x0a>;
@@ -3000,6 +3005,8 @@
 				sensor_sub: sensor-sub@40 {
 					compatible = "sprd,sensor-sub";
 					reg = <0x40>;
+					pinctrl-names = "default";
+					pinctrl-0 = <&front_camera_mclk>;
 					clock-names = "clk_src", "sensor_eb", "clk_96m", "clk_76m8", "clk_48m", "clk_26m";
 					clocks = <0x06 0x04 0x05 0x0b 0x07 0x04 0x07 0x10 0x07 0x05 0x7a>;
 					vddio-supply = <0x92>;
