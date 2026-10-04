@@ -4864,6 +4864,14 @@
 		sprd,iio-name = "SPRDSensor";
 	};
 
+	cm4-loader@800000 {
+		compatible = "iflytek,c8pro-cm4-loader";
+		reg = <0 0x800000 0 0x40000>;
+		sprd,calibration-offset = <0x3b000>;
+		sprd,reset-syscon = <&aon_apb_regs>;
+		sprd,reset-control = <0x8c 0x1>;
+	};
+
 	thm_zone: thermal-zones {
 		phandle = <0x1c5>;
 
@@ -7195,7 +7203,7 @@
 
 	chosen {
 		stdout-path = "/soc/ap-apb/serial@70100000";
-		bootargs = "earlycon=sprd_serial,0x70100000,115200n8 console=ttyS1,115200n8 loglevel=1 no_console_suspend initcall_debug init=/init root=/dev/mmcblk0p30 rootfstype=ext4 ro rootwait androidboot.hardware=ud710_21c10 androidboot.dtbo_idx=0 printk.devkmsg=on pcie_ports=compat dyndbg=\"file drivers/of/platform.c +p; file drivers/base/dd.c +p\"";
+		bootargs = "earlycon=sprd_serial,0x70100000,115200n8 console=ttyS1,115200n8 loglevel=8 no_console_suspend initcall_debug init=/init root=/dev/mmcblk0p30 rootfstype=ext4 ro rootwait androidboot.hardware=ud710_21c10 androidboot.dtbo_idx=0 printk.devkmsg=on pcie_ports=compat dyndbg=\"file drivers/of/platform.c +p; file drivers/base/dd.c +p\"";
 	};
 
 	ipi: interrupt-controller {

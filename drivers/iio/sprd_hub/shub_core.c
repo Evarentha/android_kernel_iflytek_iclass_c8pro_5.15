@@ -127,6 +127,12 @@ static int shub_send_command(struct shub_data *sensor, int sensor_ID,
 	}
 
 	mutex_lock(&sensor->send_command_mutex);
+	if (IS_ENABLED(CONFIG_SPRD_SENSOR_HUB_C8PRO_FACTORY) &&
+	    opcode == SHUB_DOWNLOAD_OPCODE_SUBTYPE) {
+		sensor->sent_cmddata.sub_type = opcode;
+		sensor->sent_cmddata.status = RESPONSE_FAIL;
+		WRITE_ONCE(sensor->sent_cmddata.condition, false);
+	}
 
 	cmddata.type = sensor_ID;
 	cmddata.subtype = opcode;
@@ -150,6 +156,15 @@ static int shub_send_command(struct shub_data *sensor, int sensor_ID,
 	/* command timeout test */
 
 	ret = nwrite;
+	if (IS_ENABLED(CONFIG_SPRD_SENSOR_HUB_C8PRO_FACTORY) &&
+	    opcode == SHUB_DOWNLOAD_OPCODE_SUBTYPE && nwrite > 0) {
+		if (!wait_event_timeout(sensor->rw_wait_queue,
+			READ_ONCE(sensor->sent_cmddata.condition),
+			msecs_to_jiffies(RESPONSE_WAIT_TIMEOUT_MS)))
+			ret = RESPONSE_TIMEOUT;
+		else
+			ret = sensor->sent_cmddata.status;
+	}
 	mutex_unlock(&sensor->send_command_mutex);
 
 	return ret;
@@ -265,6 +280,14 @@ static void shub_data_callback(struct shub_data *sensor, u8 *data, u32 len)
 {
 	struct sensor_event_data_t sensor_data;
 
+	if (IS_ENABLED(CONFIG_SPRD_SENSOR_HUB_C8PRO_FACTORY)) {
+		if (len && len <= MAX_CM4_MSG_SIZE &&
+		    (data[0] == HAL_SEN_DATA || data[0] == HAL_FLUSH))
+			shub_send_event_to_iio(sensor, data, len);
+		return;
+	}
+	if (len > sizeof(sensor_data.shub_sensor_event_t))
+		return;
 	sensor_data.cmd = HAL_SEN_DATA;
 	memcpy(&sensor_data.shub_sensor_event_t.sensor_handle, data, len);
 #if SHUB_DATA_DUMP
@@ -276,6 +299,12 @@ static void shub_data_callback(struct shub_data *sensor, u8 *data, u32 len)
 
 static void shub_readcmd_callback(struct shub_data *sensor, u8 *data, u32 len)
 {
+	if (IS_ENABLED(CONFIG_SPRD_SENSOR_HUB_C8PRO_FACTORY)) {
+		if (!len || data[0] != KNL_CMD)
+			return;
+		data++;
+		len--;
+	}
 	if (sensor->rx_buf && sensor->rx_len ==  len) {
 		memcpy(sensor->rx_buf, data, sensor->rx_len);
 		sensor->rx_status = true;
@@ -339,6 +368,8 @@ static int shub_send_event_to_iio(struct shub_data *sensor,
 	u8 event[MAX_CM4_MSG_SIZE];
 	u8 i = 0;
 
+	if (len > sizeof(event))
+		return -EMSGSIZE;
 	mutex_lock(&sensor->mutex_send);
 	memset(event, 0x00, MAX_CM4_MSG_SIZE);
 	memcpy(event, data, len);
@@ -813,6 +844,10 @@ static ssize_t als_target_store(struct device *dev,
 }
 static DEVICE_ATTR_WO(als_target);
 
+#ifdef CONFIG_SPRD_SENSOR_HUB_C8PRO_FACTORY
+#include "shub_factory.h"
+#endif
+
 static ssize_t version_show(struct device *dev, struct device_attribute *attr,
 			    char *buf)
 {
@@ -830,7 +865,8 @@ static ssize_t version_show(struct device *dev, struct device_attribute *attr,
 		sbuf_set_no_need_wake_lock(sensor->sipc_sensorhub_id,
 			   SMSG_CH_PIPE, SIPC_PM_BUFID1);
 
-		if (sensor->mcu_mode == SHUB_BOOT) {
+		if (!IS_ENABLED(CONFIG_SPRD_SENSOR_HUB_C8PRO_FACTORY) &&
+		    sensor->mcu_mode == SHUB_BOOT) {
 			sensor->mcu_mode = SHUB_NORMAL;
 			sensorhub_version = version;
 
@@ -1131,6 +1167,9 @@ static struct attribute *sensorhub_attrs[] = {
 	&dev_attr_calibrator_data.attr,
 	&dev_attr_als_target.attr,
 	&dev_attr_version.attr,
+#ifdef CONFIG_SPRD_SENSOR_HUB_C8PRO_FACTORY
+	&dev_attr_op_download.attr,
+#endif
 	&dev_attr_raw_data_als.attr,
 	&dev_attr_raw_data_ps.attr,
 	&dev_attr_sensor_info.attr,
@@ -1449,6 +1488,11 @@ static int shub_probe(struct platform_device *pdev)
 	mutex_init(&mcu->mutex_read);
 	mutex_init(&mcu->mutex_send);
 	mutex_init(&mcu->send_command_mutex);
+	mutex_init(&mcu->factory_init_lock);
+	init_waitqueue_head(&mcu->rw_wait_queue);
+#ifdef CONFIG_SPRD_SENSOR_HUB_C8PRO_FACTORY
+	mcu->response_callback = shub_factory_response;
+#endif
 
 	indio_dev->modes |= INDIO_BUFFER_TRIGGERED;
 	error = devm_iio_kfifo_buffer_setup(&pdev->dev, indio_dev,

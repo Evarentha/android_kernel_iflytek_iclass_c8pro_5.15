@@ -1510,6 +1510,14 @@ config NETFILTER_XT_MATCH_PKTTYPE
 
 	  To compile it as a module, choose M here.  If unsure, say N.
 
+config NETFILTER_XT_MATCH_QTAGUID
+	bool 'Android 9 quota, tag and owner accounting'
+	depends on NETFILTER_XT_MATCH_SOCKET
+	depends on NETFILTER_XT_MATCH_OWNER=n
+	help
+	  Provide the legacy Android per-UID/socket-tag network accounting
+	  interface in /proc/net/xt_qtaguid and the owner match used by netd.
+
 config NETFILTER_XT_MATCH_QUOTA
 	tristate '"quota" match support'
 	depends on NETFILTER_ADVANCED

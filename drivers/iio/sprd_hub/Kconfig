@@ -19,4 +19,11 @@ config SPRD_SENSOR_HUB
 	  Say Y here to build support for sensor hub.
 	  To compile this driver as a module, choose M here
 
+config SPRD_SENSOR_HUB_C8PRO_FACTORY
+	bool "C8Pro Android 9 SensorHub protocol"
+	depends on SPRD_SENSOR_HUB
+	help
+	  Restore the opcode download and tagged event ABI used by the
+	  C8Pro factory CM4 firmware and sensor HAL.
+
 endmenu
