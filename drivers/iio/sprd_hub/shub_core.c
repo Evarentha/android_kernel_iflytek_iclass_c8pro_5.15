@@ -1408,6 +1408,7 @@ static int shub_probe(struct platform_device *pdev)
 {
 	struct shub_data *mcu;
 	struct iio_dev *indio_dev;
+	const char *iio_name = SHUB_NAME;
 	int error;
 	indio_dev = iio_device_alloc(&pdev->dev, sizeof(*mcu));
 	if (!indio_dev) {
@@ -1415,7 +1416,9 @@ static int shub_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	indio_dev->name = SHUB_NAME;
+	/* The IIO device and trigger names must match the vendor HAL. */
+	of_property_read_string(pdev->dev.of_node, "sprd,iio-name", &iio_name);
+	indio_dev->name = iio_name;
 	indio_dev->dev.parent = &pdev->dev;
 	indio_dev->info = &shub_iio_info;
 	indio_dev->channels = shub_channels;
