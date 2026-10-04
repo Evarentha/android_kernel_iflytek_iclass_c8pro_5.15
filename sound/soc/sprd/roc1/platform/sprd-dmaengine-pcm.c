@@ -46,6 +46,9 @@
 #include "sprd-dmaengine-pcm.h"
 #include "sprd-platform-pcm-routing.h"
 #include "sprd-i2s.h"
+#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+#include "../dai/vbc/v4/vbc-phy-v4.h"
+#endif
 
 #define SPRD_PCM_CHANNEL_MAX 2
 #define VBC_AUDRCD_FULL_WATERMARK 160
@@ -1282,6 +1285,21 @@ static int sprd_pcm_trigger(struct snd_soc_component *component,
 
 		pr_info("pcm Start\n");
 		normal_dma_protect_spin_unlock(substream);
+#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+		/* Factory PCM issues command 12 only after AP DMA is ready. */
+		if (asoc_rtd_to_cpu(srtd, 0)->id == FE_DAI_ID_CAPTURE_DSP &&
+		    substream->stream == SNDRV_PCM_STREAM_CAPTURE) {
+			ret = vbc_dsp_func_trigger_after_dma(VBC_DAI_ID_CAPTURE_DSP,
+							   substream->stream, 1);
+			pr_info("C8AUDIO after-DMA scene=2 capture cmd=12 ret=%d\n",
+				ret);
+			if (ret) {
+				for (i = 0; i < rtd->hw_chan; i++)
+					if (rtd->dma_chn[i])
+						dmaengine_pause(rtd->dma_chn[i]);
+			}
+		}
+#endif
 		break;
 	case SNDRV_PCM_TRIGGER_STOP:
 	case SNDRV_PCM_TRIGGER_SUSPEND:

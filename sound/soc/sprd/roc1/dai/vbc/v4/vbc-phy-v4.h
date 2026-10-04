@@ -532,6 +532,9 @@ enum VBC_FIFO_WARTERMARK_TYPE {
 #define SND_VBC_DSP_IO_KCTL_SET 9
 #define SND_VBC_DSP_IO_SHAREMEM_GET 10
 #define SND_VBC_DSP_IO_SHAREMEM_SET 11
+#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+#define SND_VBC_DSP_FUNC_HW_TRIGGER_AFTER_DMA 12
+#endif
 
 /************************************************************
  * define for SND_VBC_DSP_IO_KCTL_GET / SND_VBC_DSP_IO_KCTL_SET
@@ -1533,6 +1536,9 @@ int vbc_dsp_func_shutdown(int scene_id, int stream,
 int vbc_dsp_func_hwparam(int scene_id, int stream,
 	struct sprd_vbc_stream_hw_paras *hw_data);
 int vbc_dsp_func_trigger(int id, int stream, int up_down);
+#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+int vbc_dsp_func_trigger_after_dma(int id, int stream, int up_down);
+#endif
 int aud_dig_iis_master(struct snd_soc_card *card, int setting);
 int pm_shutdown(void);
 #endif /* __VBC_V4_PHY_DRV_H */

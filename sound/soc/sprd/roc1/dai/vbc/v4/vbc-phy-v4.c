@@ -1436,6 +1436,18 @@ int vbc_dsp_func_trigger(int id, int stream, int up_down)
 	return 0;
 }
 
+#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+int vbc_dsp_func_trigger_after_dma(int id, int stream, int up_down)
+{
+	int ret;
+
+	ret = aud_send_cmd_no_wait(AMSG_CH_VBC_CTL,
+		SND_VBC_DSP_FUNC_HW_TRIGGER_AFTER_DMA, id, stream, up_down, 0);
+	return ret < 0 ? -EIO : 0;
+}
+EXPORT_SYMBOL_GPL(vbc_dsp_func_trigger_after_dma);
+#endif
+
 /*********************************************************
  * others
  *********************************************************/
