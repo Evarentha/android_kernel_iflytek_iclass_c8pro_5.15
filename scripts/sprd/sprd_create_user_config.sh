@@ -1,4 +1,13 @@
 #!/bin/bash
+#
+# SPRD Configuration Fragment Loader
+#
+# Applies vendor configuration directives through the kernel config helper.
+#
+# Authors:
+# worryzu <worryzu@gmail.com> @LinearTeam
+#
+# Copyright (C) 2026 Evarentha
 # SPDX-License-Identifier: GPL-2.0-only
 # Apply SPRD ADD/DEL/MOD/VAL/STR fragments using the kernel config helper.
 set -e

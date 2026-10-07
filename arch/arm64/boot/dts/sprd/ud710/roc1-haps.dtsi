@@ -166,6 +166,7 @@
 
 			dpu: dpu@20300000 {
 				compatible = "sprd,roc1-dpu";
+				sprd,pmu-syscon = <&pmu_apb_regs>;
 				reg = <0 0x20300000 0 0x1000>;
 				interrupts = <GIC_SPI 27 IRQ_TYPE_LEVEL_HIGH>;
 				status = "disabled";

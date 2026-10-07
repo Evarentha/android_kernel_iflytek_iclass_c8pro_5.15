@@ -3,6 +3,7 @@
  * phy-sprd-usb3.c - Spreadtrum USB3 PHY Glue layer
  *
  * Copyright (c) 2018 Spreadtrum Co., Ltd.
+ * Copyright (C) 2026 Evarentha
  *		http://www.spreadtrum.com
  *
  * Author: Miao Zhu <miao.zhu@spreadtrum.com>

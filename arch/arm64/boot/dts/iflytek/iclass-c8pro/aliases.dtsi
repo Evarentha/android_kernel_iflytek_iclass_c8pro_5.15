@@ -1,0 +1,39 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+	aliases {
+		i2c0 = "/soc/ap-apb/i2c@70300000";
+		i2c1 = "/soc/ap-apb/i2c@70400000";
+		i2c2 = "/soc/ap-apb/i2c@70500000";
+		i2c3 = "/soc/ap-apb/i2c@70600000";
+		i2c4 = "/soc/ap-apb/i2c@70700000";
+		i2c5 = "/soc/aon/i2c@32060000";
+		i2c6 = "/soc/aon/i2c@32370000";
+		spi0 = "/soc/ap-apb/spi@70800000";
+		spi1 = "/soc/ap-apb/spi@70900000";
+		spi2 = "/soc/ap-apb/spi@70a00000";
+		spi3 = "/soc/ap-apb/spi@70b00000";
+		eth0 = "/sipa-eth0";
+		eth1 = "/sipa-eth1";
+		eth2 = "/sipa-eth2";
+		eth3 = "/sipa-eth3";
+		eth4 = "/sipa-eth4";
+		eth5 = "/sipa-eth5";
+		eth6 = "/sipa-eth6";
+		eth7 = "/sipa-eth7";
+		thm-sensor15 = "/soc/aon/cluster0-sensor@15";
+		thm-sensor16 = "/soc/aon/cluster1-sensor@16";
+		thm-sensor17 = "/soc/aon/soc-sensor@17";
+		cooling-device0 = "/cooling-devices/cluster0-cooling";
+		cooling-device1 = "/cooling-devices/cluster1-cooling";
+		gpu-cooling0 = "/gpu-cooling-devices/gpu-cooling0";
+		lte-modem0 = "/modem@0";
+		nr-modem0 = "/modem@1";
+		nr-modem1 = "/modem@2";
+		serial0 = "/soc/ap-apb/serial@70000000";
+		serial1 = "/soc/ap-apb/serial@70100000";
+		serial2 = "/soc/ap-apb/serial@70200000";
+	};
+

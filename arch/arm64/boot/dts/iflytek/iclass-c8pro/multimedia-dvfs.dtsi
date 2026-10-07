@@ -1,0 +1,116 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+	sipa_eth0: sipa-eth0 {
+		compatible = "sprd,sipa_eth";
+		sprd,netid = <0x01>;
+		sprd,term-type = <0x06>;
+		phandle = <0x1af>;
+	};
+
+	sipa_eth1: sipa-eth1 {
+		compatible = "sprd,sipa_eth";
+		sprd,netid = <0x02>;
+		sprd,term-type = <0x06>;
+		phandle = <0x1b0>;
+	};
+
+	sipa_eth2: sipa-eth2 {
+		compatible = "sprd,sipa_eth";
+		sprd,netid = <0x03>;
+		sprd,term-type = <0x06>;
+		phandle = <0x1b1>;
+	};
+
+	sipa_eth3: sipa-eth3 {
+		compatible = "sprd,sipa_eth";
+		sprd,netid = <0x04>;
+		sprd,term-type = <0x06>;
+		phandle = <0x1b2>;
+	};
+
+	sipa_eth4: sipa-eth4 {
+		compatible = "sprd,sipa_eth";
+		sprd,netid = <0x05>;
+		sprd,term-type = <0x06>;
+		phandle = <0x1b3>;
+	};
+
+	sipa_eth5: sipa-eth5 {
+		compatible = "sprd,sipa_eth";
+		sprd,netid = <0x06>;
+		sprd,term-type = <0x06>;
+		phandle = <0x1b4>;
+	};
+
+	sipa_eth6: sipa-eth6 {
+		compatible = "sprd,sipa_eth";
+		sprd,netid = <0x07>;
+		sprd,term-type = <0x06>;
+		phandle = <0x1b5>;
+	};
+
+	sipa_eth7: sipa-eth7 {
+		compatible = "sprd,sipa_eth";
+		sprd,netid = <0x08>;
+		sprd,term-type = <0x06>;
+		phandle = <0x1b6>;
+	};
+
+	isp_dvfs: isp-dvfs {
+		compatible = "sprd,hwdvfs-isp";
+		status = "okay";
+		operating-points = <0x3e800 0xaae60 0x4b000 0xaae60 0x5dc00 0xb71b0 0x72420 0xb71b0 0x7d000 0xc3500>;
+		phandle = <0x1b7>;
+	};
+
+	cpp_dvfs: cpp-dvfs {
+		compatible = "sprd,hwdvfs-cpp";
+		status = "okay";
+		operating-points = <0x12c00 0xaae60 0x1f400 0xaae60 0x3e800 0xaae60 0x5dc00 0xb71b0>;
+		phandle = <0x1b8>;
+	};
+
+	jpg_dvfs: jpg-dvfs {
+		compatible = "sprd,hwdvfs-jpg";
+		status = "okay";
+		operating-points = <0x12c00 0xaae60 0x1f400 0xaae60 0x3e800 0xaae60 0x5dc00 0xb71b0>;
+		phandle = <0x1b9>;
+	};
+
+	fd_dvfs: fd-dvfs {
+		compatible = "sprd,hwdvfs-fd";
+		status = "okay";
+		operating-points = <0x12c00 0xaae60 0x2ee00 0xaae60 0x4b000 0xaae60 0x5dc00 0xb71b0>;
+		phandle = <0x1ba>;
+	};
+
+	mtx_dvfs: mtx-dvfs {
+		compatible = "sprd,hwdvfs-mtx";
+		status = "okay";
+		operating-points = <0x12c00 0xaae60 0x1f400 0xaae60 0x3e800 0xaae60 0x4b000 0xaae60 0x5dc00 0xb71b0 0x72420 0xb71b0 0x7d000 0xc3500>;
+		phandle = <0x1bb>;
+	};
+
+	dcam_if_dvfs: dcam-if-dvfs {
+		compatible = "sprd,hwdvfs-dcam-if";
+		status = "okay";
+		operating-points = <0x2ee00 0xaae60 0x3e800 0xaae60 0x4b000 0xaae60 0x5dc00 0xb71b0 0x72420 0xc3500>;
+		phandle = <0x1bc>;
+	};
+
+	dcam_axi_dvfs: dcam-axi-dvfs {
+		compatible = "sprd,hwdvfs-dcam-axi";
+		status = "okay";
+		operating-points = <0x3e800 0xaae60 0x4b000 0xaae60 0x5dc00 0xb71b0 0x72420 0xc3500>;
+		phandle = <0x1bd>;
+	};
+
+	mmsys_dvfs: mmsys-dvfs {
+		compatible = "sprd,hwdvfs-mmsys";
+		status = "okay";
+		phandle = <0x1be>;
+	};
+

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2026 Evarentha
  *
  * SPDX-License-Identifier: GPL-2.0
  */
@@ -627,22 +628,6 @@ static void sprd_dma_start(struct sprd_dma_chn *schan)
 
 static void sprd_dma_stop(struct sprd_dma_chn *schan)
 {
-	/* C8Pro DSP capture: snapshot before stop destroys the DMA state. */
-	if (schan->dev_id == 14 && schan->cur_desc &&
-	    schan->cur_desc->dir == DMA_DEV_TO_MEM) {
-		struct sprd_dma_dev *sdev = to_sprd_dma_dev(&schan->vc.chan);
-
-		dev_info(sdev->dma_dev.dev,
-			 "C8DMA capture ch%u cfg=%08x int=%08x src=%08x dst=%08x ll=%08x req=%08x\n",
-			 schan->chn_num,
-			 readl(schan->chn_base + SPRD_DMA_CHN_CFG),
-			 readl(schan->chn_base + SPRD_DMA_CHN_INTC),
-			 readl(schan->chn_base + SPRD_DMA_CHN_SRC_ADDR),
-			 readl(schan->chn_base + SPRD_DMA_CHN_DES_ADDR),
-			 readl(schan->chn_base + SPRD_DMA_CHN_LLIST_PTR),
-			 readl(sdev->glb_base + SPRD_DMA_GLB_REQ_STS));
-	}
-
 	sprd_dma_stop_and_disable(schan);
 	sprd_dma_set_pending(schan, false);
 	sprd_dma_unset_uid(schan);

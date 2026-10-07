@@ -907,11 +907,6 @@ long drm_ioctl(struct file *filp,
 		retcode = -EFAULT;
 
       err_i1:
-	if (IS_ENABLED(CONFIG_MITOCHODRIA_C8PRO_USER_DIAG) && retcode &&
-	    !strcmp(dev->driver->name, "sprd"))
-		pr_info_ratelimited("C8DIAG drm comm=%s pid=%d cmd=%x name=%s ret=%d\n",
-			current->comm, task_pid_nr(current), cmd,
-			ioctl ? ioctl->name : "invalid", retcode);
 	if (!ioctl)
 		DRM_DEBUG("invalid ioctl: comm=\"%s\", pid=%d, dev=0x%lx, auth=%d, cmd=0x%02x, nr=0x%02x\n",
 			  current->comm, task_pid_nr(current),

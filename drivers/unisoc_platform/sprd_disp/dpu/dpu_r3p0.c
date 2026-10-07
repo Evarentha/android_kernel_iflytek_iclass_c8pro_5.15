@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2026 Evarentha
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -12,6 +13,8 @@
  */
 
 #include <linux/backlight.h>
+#include <linux/mfd/syscon.h>
+#include <linux/regmap.h>
 #include <linux/delay.h>
 #include <linux/of_address.h>
 #include <linux/wait.h>
@@ -2001,7 +2004,9 @@ static int dpu_cabc_trigger(struct dpu_context *ctx)
 	volatile struct dpu_reg *reg = (volatile struct dpu_reg *)ctx->base;
 	struct cm_cfg cm;
 	struct device_node *backlight_node;
-	static unsigned long vsp_pmu_addr;
+	static struct regmap *vsp_pmu;
+	u32 vsp_state;
+	int ret;
 
 	if (cabc_disable) {
 		if ((cabc_disable == CABC_STOPPING) && backlight) {
@@ -2036,9 +2041,9 @@ static int dpu_cabc_trigger(struct dpu_context *ctx)
 
 		if (!backlight)
 			return -ENODEV;
-		vsp_pmu_addr = (unsigned long)ioremap(0x32280584, 4);
-		if (!vsp_pmu_addr)
-			return -ENOMEM;
+		vsp_pmu = syscon_regmap_lookup_by_phandle(g_np, "sprd,pmu-syscon");
+		if (IS_ERR(vsp_pmu))
+			return PTR_ERR(vsp_pmu);
 
 		reg->dpu_enhance_cfg |= BIT(3);
 		reg->dpu_enhance_cfg |= BIT(8);
@@ -2071,7 +2076,10 @@ static int dpu_cabc_trigger(struct dpu_context *ctx)
 
 		if (frame_no == 1)
 			 cabc_para.cur_bl = backlight->props.brightness;
-		if ((*(unsigned int *)vsp_pmu_addr) & 0x00ff0000)
+		ret = regmap_read(vsp_pmu, 0x584, &vsp_state);
+		if (ret)
+			return ret;
+		if (vsp_state & 0x00ff0000)
 			cabc_para.is_VSP_working = false;
 		else
 			cabc_para.is_VSP_working = true;

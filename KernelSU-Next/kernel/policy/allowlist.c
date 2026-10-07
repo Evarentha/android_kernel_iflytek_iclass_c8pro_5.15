@@ -1,3 +1,4 @@
+/* Copyright (C) 2026 Evarentha - Mitochodria compatibility changes. */
 #include <linux/rcupdate.h>
 #include <linux/limits.h>
 #include <linux/rculist.h>
@@ -458,7 +459,7 @@ static void do_persistent_allow_list(struct callback_head *_cb)
      * on init, whose current credentials carry vold's installed keys;
      * ksu_cred was captured before those keyrings existed.
      */
-    if (IS_ENABLED(CONFIG_KSU_C8PRO_DIAGNOSTIC)) {
+    if (IS_ENABLED(CONFIG_KSU_MITOCHODRIA_COMPAT)) {
         io_cred = prepare_creds();
         if (!io_cred) {
             kfree(_cb);
@@ -539,7 +540,7 @@ void ksu_persistent_allow_list()
 	}
 	cb->func = do_persistent_allow_list;
 	/* Persistence must also run while init is sleeping in epoll_wait. */
-	if (task_work_add(tsk, cb, IS_ENABLED(CONFIG_KSU_C8PRO_DIAGNOSTIC) ?
+	if (task_work_add(tsk, cb, IS_ENABLED(CONFIG_KSU_MITOCHODRIA_COMPAT) ?
 			  TWA_SIGNAL : TWA_RESUME)) {
 		kfree(cb);
 		pr_warn("save_allow_list add task_work failed\n");

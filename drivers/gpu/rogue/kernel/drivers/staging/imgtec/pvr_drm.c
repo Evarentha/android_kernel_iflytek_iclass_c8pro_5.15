@@ -5,6 +5,7 @@
 @Title          PowerVR DRM driver
 @Codingstyle    LinuxKernel
 @Copyright      Copyright (c) Imagination Technologies Ltd. All Rights Reserved
+@Copyright      Copyright (C) 2026 Evarentha
 @License        Dual MIT/GPLv2
 
 The contents of this file are subject to the MIT license as set out below.

@@ -5,11 +5,11 @@ config SND_SOC_SPRD_VBC_V4
 	  If the chip is the series of sharkl5,
 	  set Y or M, else N.
 
-config SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
-	bool "C8Pro Android 9 factory audio DSP protocol"
+config MITOCHODRIA_VBC_LEGACY_ABI
+	bool "Mitochodria legacy Android 9 audio DSP protocol"
 	depends on SND_SOC_SPRD_VBC_V4
 	help
 	  Use the 616-byte startup/shutdown layout and unshifted DMIC
-	  selection expected by the C8Pro factory 4.14.98 audio firmware.
+	  selection expected by the legacy 4.14.98 audio firmware.
 	  Select this only when using that firmware and its Android 9 HAL.
 	  Other boards retain the newer VBC startup protocol by default.

@@ -1,0 +1,155 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+	autotest: autotest {
+		compatible = "sprd,autotest";
+		sprd,pinctrl = <0x115>;
+		phandle = <0x1e0>;
+	};
+
+	lte_pm: modem@0 {
+		compatible = "sprd,modem";
+		syscons = <0x10 0xff 0x00 0x02 0xff 0x100000 0x10 0x8c 0x01 0x10 0xff 0x00 0x10 0xff 0x00>;
+		syscon-names = "shutdown", "deepsleep", "corereset", "sysreset", "getstatus";
+		phandle = <0x1e1>;
+	};
+
+	nr_dp: modem@1 {
+		compatible = "sprd,pcie-modem";
+		5g-modem-support;
+		phandle = <0x1e2>;
+	};
+
+	nr_pscp: modem@2 {
+		compatible = "sprd,pcie-modem";
+		dmas = <0x116 0x01 0x116 0x02>;
+		dma-names = "mem_read", "mem_write";
+		5g-modem-support;
+		phandle = <0x1e3>;
+	};
+
+	/*
+	 * Unisoc SIPC family, 5.15 binding style.
+	 *
+	 * A sipc node carries the inter-processor channel itself: "label" is
+	 * the channel name and "reg" is the sipc destination id.  The spipe /
+	 * spool endpoints are children of the sipc they run on: their "reg" is
+	 * the sipc channel id and they inherit the destination from the
+	 * parent sipc node's "reg" (see sprd_ipc_parse_dt/spipe_parse_dt in
+	 * drivers/unisoc_platform/modem/sipc/).  All hardware values below are
+	 * carried over unchanged from the factory 4.14 DTB.
+	 */
+	sipc_pm: sipc@6 {
+		compatible = "sprd,sipc";
+		label = "sipc-pmsys";
+		reg = <0x06>;	/* sipc dst */
+		mboxes = <&aon_mailbox 0x01 0x00>, <&aon_mailbox 0x06 0x01>;
+		sprd,smem-info = <0xdc00 0x2000bc00 0x2000>;
+		#address-cells = <0x01>;
+		#size-cells = <0x00>;
+
+		spipe_pm: spipe@4 {
+			compatible = "sprd,spipe";
+			label = "spipe_pm";
+			reg = <0x04>;	/* sipc channel */
+			sprd,ringnr = <0x02>;
+			sprd,size-rxbuf = <0xb00>;
+			sprd,size-txbuf = <0x180>;
+		};
+
+		slog_pm: spipe@5 {
+			compatible = "sprd,spipe";
+			label = "slog_pm";
+			reg = <0x05>;	/* sipc channel */
+			sprd,ringnr = <0x01>;
+			sprd,size-rxbuf = <0x5c0>;
+			sprd,size-txbuf = <0x20>;
+		};
+
+		sctl_pm: spipe@6 {
+			compatible = "sprd,spipe";
+			label = "sctl_pm";
+			reg = <0x06>;	/* sipc channel */
+			sprd,ringnr = <0x01>;
+			sprd,size-rxbuf = <0x40>;
+			sprd,size-txbuf = <0x20>;
+		};
+	};
+
+	sipc_nr: sipc@1 {
+		compatible = "sprd,sipc";
+		label = "sipc-nr";
+		reg = <0x01>;	/* sipc dst */
+		sprd,smem-info = <0x89600000 0x89600000 0x3000000>;
+		#address-cells = <0x01>;
+		#size-cells = <0x00>;
+
+		spipe_nr: spipe@4 {
+			compatible = "sprd,spipe";
+			label = "spipe_nr";
+			reg = <0x04>;	/* sipc channel */
+			sprd,ringnr = <0x0f>;
+			sprd,size-rxbuf = <0x1000>;
+			sprd,size-txbuf = <0x1000>;
+		};
+
+		sdiag_nr: spipe@15 {
+			compatible = "sprd,spipe";
+			label = "sdiag_nr";
+			reg = <0x15>;	/* sipc channel */
+			sprd,ringnr = <0x01>;
+			sprd,size-rxbuf = <0x40000>;
+			sprd,size-txbuf = <0x8000>;
+		};
+
+		stty_nr: spipe@6 {
+			compatible = "sprd,spipe";
+			label = "stty_nr";
+			reg = <0x06>;	/* sipc channel */
+			sprd,ringnr = <0x20>;
+			sprd,size-rxbuf = <0x800>;
+			sprd,size-txbuf = <0x800>;
+		};
+
+		snv_nr: spipe@28 {
+			compatible = "sprd,spipe";
+			label = "snv_nr";
+			reg = <0x28>;	/* sipc channel */
+			sprd,ringnr = <0x01>;
+			sprd,size-rxbuf = <0x40400>;
+			sprd,size-txbuf = <0x1000>;
+		};
+
+		slog_nr: spool@5 {
+			compatible = "sprd,spool";
+			label = "slog_nr";
+			reg = <0x05>;	/* sipc channel */
+			sprd,tx-blksize = <0x00>;
+			sprd,tx-blknum = <0x00>;
+			sprd,rx-blksize = <0x10000>;
+			sprd,rx-blknum = <0x80>;
+		};
+	};
+
+	sprd-mcd {
+		compatible = "sprd,roc1-modem-ctrl";
+		poweron-gpio = <0x2d 0x0f 0x00>;
+		cpwatchdog-gpio = <0x2d 0x1e 0x00>;
+		cpassert-gpio = <0x2d 0x24 0x00>;
+		cppoweroff-gpio = <0x2d 0x21 0x00>;
+	};
+
+	sprd-pm {
+		compatible = "sprd,scproc_pubcp";
+		#address-cells = <0x02>;
+		#size-cells = <0x02>;
+		ranges;
+
+		scproc_pubpm: scproc@800000 {
+			reg = <0x00 0x800000 0x00 0x40000>;
+			phandle = <0x126>;
+		};
+	};
+

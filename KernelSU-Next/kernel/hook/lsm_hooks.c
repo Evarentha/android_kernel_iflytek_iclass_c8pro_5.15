@@ -36,7 +36,7 @@ static int ksu_key_permission(key_ref_t key_ref, const struct cred *cred,
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
 static int ksu_inode_rename(struct mnt_idmap *idmap, struct inode *old_dir, struct dentry *old_dentry,
 			    struct inode *new_dir, struct dentry *new_dentry)
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0) && !defined(CONFIG_KSU_C8PRO_DIAGNOSTIC)
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0) && !defined(CONFIG_KSU_MITOCHODRIA_COMPAT)
 static int ksu_inode_rename(struct user_namespace *mnt_userns, struct inode *old_dir, struct dentry *old_dentry,
 			    struct inode *new_dir, struct dentry *new_dentry)
 #else
@@ -113,7 +113,7 @@ static int ksu_task_fix_setuid(struct cred *new, const struct cred *old,
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
 int ksu_inode_permission(struct mnt_idmap *idmap, struct inode *inode, int mask)
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0) && !defined(CONFIG_KSU_C8PRO_DIAGNOSTIC)
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0) && !defined(CONFIG_KSU_MITOCHODRIA_COMPAT)
 int ksu_inode_permission(struct user_namespace *mnt_userns, struct inode *inode, int mask)
 #else
 int ksu_inode_permission(struct inode *inode, int mask)

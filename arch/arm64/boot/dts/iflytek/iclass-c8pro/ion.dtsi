@@ -1,0 +1,38 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+	ion {
+		compatible = "sprd,ion";
+		batchsize = <0x3c>;
+		#address-cells = <0x01>;
+		#size-cells = <0x00>;
+
+		heap@1 {
+			reg = <0x01>;
+			label = "carveout_mm";
+			type = <0x02>;
+		};
+
+		heap@2 {
+			reg = <0x02>;
+			label = "carveout_overlay";
+			type = <0x02>;
+		};
+
+		heap@3 {
+			reg = <0x03>;
+			label = "carveout_fb";
+			type = <0x02>;
+			memory-region = <0x113>;
+		};
+
+		heap@4 {
+			reg = <0x04>;
+			label = "carveout_fd";
+			type = <0x02>;
+			memory-region = <0x114>;
+		};
+	};
+

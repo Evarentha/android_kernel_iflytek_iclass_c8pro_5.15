@@ -3,6 +3,7 @@
  * Charger device driver for SC2703
  *
  * Copyright (c) 2018 Dialog Semiconductor.
+ * Copyright (C) 2026 Evarentha
  */
 #include <linux/delay.h>
 #include <linux/extcon.h>
@@ -916,47 +917,6 @@ static bool sc2703_charger_is_support_fchg(struct sc2703_charger_info *info)
 	return info->charger_type == POWER_SUPPLY_CHARGE_TYPE_FAST;
 }
 
-static void sc2703_charger_diag(struct sc2703_charger_info *info,
-				bool present, int input_limit, int charge_current,
-				int result)
-{
-	static const unsigned int regs[] = {
-		SC2703_STATUS_A, SC2703_STATUS_B, SC2703_STATUS_C,
-		SC2703_STATUS_D, SC2703_EVENT_A, SC2703_EVENT_B,
-		SC2703_EVENT_C, SC2703_EVENT_D, SC2703_DCDC_CTRL_A,
-		SC2703_DCDC_CTRL_D, SC2703_CHG_CTRL_A, SC2703_CHG_CTRL_B,
-	};
-	struct power_supply *psy;
-	union power_supply_propval val;
-	u32 values[ARRAY_SIZE(regs)];
-	int voltage = 0, battery_current = 0;
-	int i, ret;
-
-	for (i = 0; i < ARRAY_SIZE(regs); i++) {
-		ret = regmap_read(info->regmap, regs[i], &values[i]);
-		if (ret)
-			values[i] = ~0U;
-	}
-
-	psy = power_supply_get_by_name(SC2703_BATTERY_NAME);
-	if (psy) {
-		if (!power_supply_get_property(psy,
-					       POWER_SUPPLY_PROP_VOLTAGE_NOW, &val))
-			voltage = val.intval;
-		if (!power_supply_get_property(psy,
-					       POWER_SUPPLY_PROP_CURRENT_NOW, &val))
-			battery_current = val.intval;
-		power_supply_put(psy);
-	}
-
-	dev_info_ratelimited(info->dev,
-		"sc2703-diag: limit=%u present=%d charging=%d input=%d charge=%d ret=%d fgu_uv=%d fgu_ua=%d status=%02x/%02x/%02x/%02x event=%02x/%02x/%02x/%02x dcdc=%02x/%02x chg=%02x/%02x\n",
-		info->limit, present, info->charging, input_limit, charge_current,
-		result, voltage, battery_current, values[0], values[1], values[2], values[3],
-		values[4], values[5], values[6], values[7], values[8], values[9],
-		values[10], values[11]);
-}
-
 static void sc2703_charger_work(struct work_struct *data)
 {
 	struct sc2703_charger_info *info =
@@ -1009,7 +969,6 @@ static void sc2703_charger_work(struct work_struct *data)
 
 out:
 	mutex_unlock(&info->lock);
-	sc2703_charger_diag(info, present, limit_cur, cur, ret);
 	dev_info(info->dev, "battery present = %d, charger type = %d\n",
 		 present, info->usb_phy->chg_type);
 	cm_notify_event(info->psy_usb, CM_EVENT_CHG_START_STOP, NULL);
@@ -1333,8 +1292,6 @@ sc2703_charger_usb_set_property(struct power_supply *psy,
 			if (!ret)
 				info->charging = false;
 		}
-		dev_info(info->dev, "C8CHG calibrate enable=%d ret=%d\n",
-			 val->intval, ret);
 		break;
 
 	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE_MAX:

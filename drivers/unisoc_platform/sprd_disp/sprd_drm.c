@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2020 Unisoc Inc.
+ * Copyright (C) 2026 Evarentha
  */
 
 #include <linux/component.h>
@@ -316,10 +317,6 @@ static long sprd_drm_ioctl_common(struct file *file, unsigned int cmd,
 		ret = drm_ioctl_kernel(file, sprd_gsp_get_capability_ioctl, &cap, 0);
 	else
 		ret = drm_ioctl_kernel(file, sprd_gsp_trigger_ioctl, &cfg, 0);
-	if (IS_ENABLED(CONFIG_MITOCHODRIA_C8PRO_USER_DIAG))
-		pr_info_ratelimited("C8DIAG gsp-legacy cmd=%x compat=%d size=%u ret=%ld\n",
-				    cmd, compat, DRM_IOCTL_NR(cmd) == 0x40 ?
-				    cap.size : cfg.size, ret);
 	return ret;
 }
 

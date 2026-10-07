@@ -1,3 +1,4 @@
+/* Copyright (C) 2026 Evarentha - Mitochodria compatibility changes. */
 #include "ksu.h"
 #include "linux/cred.h"
 #include "util.h"
@@ -378,7 +379,7 @@ out:
 	}
 out_revert_cred:
 	revert_creds(old_cred);
-	if (IS_ENABLED(CONFIG_KSU_C8PRO_DIAGNOSTIC) && manager_io_retry &&
+	if (IS_ENABLED(CONFIG_KSU_MITOCHODRIA_COMPAT) && manager_io_retry &&
 	    !ksu_is_manager_appid_valid() && manager_retry_count < 12) {
 		manager_retry_count++;
 		pr_info("manager APK access retry %u/12 in 5s\n", manager_retry_count);

@@ -1,0 +1,66 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+	reserved-memory {
+		#address-cells = <0x02>;
+		#size-cells = <0x02>;
+		ranges;
+
+		ddrbist_reserved: ddrbist-mem@80000000 {
+			reg = <0x00 0x80000000 0x00 0x1000>;
+			phandle = <0x125>;
+		};
+
+		audio_reserved: audio-mem@87400000 {
+			reg = <0x00 0x87400000 0x00 0x400000>;
+			phandle = <0xdd>;
+		};
+
+		audiodsp_reserved: audiodsp-mem@89000000 {
+			reg = <0x00 0x89000000 0x00 0x600000>;
+			phandle = <0xde>;
+		};
+
+		smem_reserved: sipc-mem@89600000 {
+			reg = <0x00 0x89600000 0x00 0x3000000>;
+			phandle = <0x127>;
+		};
+
+		vdsp_reserved: vdsp-mem@93e00000 {
+			reg = <0x00 0x93e00000 0x00 0x200000>;
+			phandle = <0xa1>;
+		};
+
+		sml_reserved: sml-mem@94000000 {
+			reg = <0x00 0x94000000 0x00 0x40000>;
+			phandle = <0x1dd>;
+		};
+
+		tos_reserved: tos-mem@94040000 {
+			reg = <0x00 0x94040000 0x00 0x3fc0000>;
+			phandle = <0x1de>;
+		};
+
+		pstore_reserved: pstore-mem@9f000000 {
+			reg = <0x00 0x9f000000 0x00 0x40000>;
+			phandle = <0x1df>;
+		};
+
+		fd_reserved: fd-mem@fbdc0000 {
+			reg = <0x00 0xfbdc0000 0x00 0x1e00000>;
+			phandle = <0x114>;
+		};
+
+		fb_reserved: framebuffer-mem@fdbc0000 {
+			reg = <0x00 0xfdbc0000 0x00 0x1b00000>;
+			phandle = <0x113>;
+		};
+
+		wb_reserved: writeback-mem@ff6c0000 {
+			reg = <0x00 0xff6c0000 0x00 0x900000>;
+			phandle = <0x20>;
+		};
+	};
+

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2017 Spreadtrum Communications Inc.
+ * Copyright (C) 2026 Evarentha
  *
  * SPDX-License-Identifier: GPL-2.0
  */

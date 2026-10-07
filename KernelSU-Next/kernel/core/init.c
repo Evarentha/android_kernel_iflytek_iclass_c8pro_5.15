@@ -136,7 +136,7 @@ int __init kernelsu_init(void)
 
 	ksu_lsm_hook_init();
 
-	if (!IS_ENABLED(CONFIG_KSU_C8PRO_DIAGNOSTIC))
+	if (!IS_ENABLED(CONFIG_KSU_MITOCHODRIA_COMPAT))
 		ksu_selinux_hide_init();
 
 	ksu_supercalls_init();

@@ -209,6 +209,14 @@ config SCSI_UFS_HWMON
 
 	  If unsure, say N.
 
+config SCSI_UFS_ROC1
+	tristate "Spreadtrum ROC1 UFS controller"
+	depends on SCSI_UFSHCD_PLATFORM && ARCH_SPRD
+	select MFD_SYSCON
+	help
+	  Enable the ROC1/UD710 UFS controller and its original PHY/reset
+	  sequence. This uses the sprd,roc1-ufshc device-tree binding.
+
 config SCSI_UFS_SPRD
         tristate "SPRD specific common hooks to UFS controller platform driver"
         depends on SCSI_UFSHCD_PLATFORM

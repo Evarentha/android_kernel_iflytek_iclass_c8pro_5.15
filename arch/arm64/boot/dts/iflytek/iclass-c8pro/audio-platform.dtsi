@@ -1,0 +1,119 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+	sprd_pcm: sprd-pcm-audio {
+		compatible = "sprd,roc1-pcm-platform";
+		#sound-dai-cells = <0x00>;
+		dmas = <0xdc 0x01 0xdc 0x02 0xdc 0x03 0xdc 0x04 0xdc 0x05 0xdc 0x06 0xdc 0x07 0xdc 0x08 0xdc 0x09 0xdc 0x0a 0xdc 0x0b 0xdc 0x0c 0xdc 0x0d 0xdc 0x0e 0xdc 0x0f 0xdc 0x10 0xdc 0x09 0xdc 0x09 0xdc 0x0b>;
+		dma-names = "normal_p_l", "normal_p_r", "normal_c_l", "normal_c_r", "normal23_p_l", "normal23_p_r", "normal23_c_l", "normal23_c_r", "dspcap_c", "a2dppcm_p", "voice_c", "fast_p", "loop_c", "loop_p", "voip_c", "voip_p", "dspfmcap_c", "dspbtscocap_c", "recognise_c";
+		phandle = <0x11a>;
+	};
+
+	sprd_compr: sprd-compr-audio {
+		compatible = "sprd,roc1-compress-platform";
+		#sound-dai-cells = <0x00>;
+		dmas = <0xdc 0x11 0xdc 0x12>;
+		dma-names = "compr_dma_stage0", "compr_dma_stage1";
+		phandle = <0x11c>;
+	};
+
+	sprd_fe_dai: sprd-fe-dai {
+		compatible = "sprd,fe-dai";
+		#sound-dai-cells = <0x01>;
+		phandle = <0x11b>;
+	};
+
+	sprd_route_pcm: sprd-routing-pcm {
+		compatible = "sprd,pcm-routing";
+		#sound-dai-cells = <0x00>;
+		phandle = <0x11d>;
+	};
+
+	audio-sipc {
+		compatible = "sprd,audio_sipc";
+		mboxes = <&aon_mailbox 0x05 0x00>;
+	};
+
+	audio-mem-mgr {
+		compatible = "sprd,audio-mem-roc1";
+		ddr32-ap-dsp-map-offset = <0x00>;
+		sprd,ddr32-dma = <0x87400000 0x300000>;
+		sprd,ddr32-dspmemdump = <0x87700000 0x80000>;
+		sprd,cmdaddr = <0x87780000 0x400>;
+		sprd,smsg-addr = <0x87780400 0xa10>;
+		sprd,shmaddr-aud-str = <0x87780e10 0x400>;
+		sprd,shmaddr-dsp-vbc = <0x87781210 0x1400>;
+		sprd,shmaddr-nxp = <0x87782610 0x400>;
+		sprd,shmaddr-dsp-smartpa = <0x87782a10 0x1000>;
+		sprd,shmaddr-reg-dump = <0x87783a10 0x400>;
+		sprd,iram-ap-base = <0x33800000>;
+		sprd,iram-dsp-base = <0x1800000>;
+		sprd,offload-addr = <0x33800000 0x5c00>;
+		sprd,normal-captue-linklilst-node1 = <0x33805e00 0x200>;
+		sprd,normal-captue-data = <0x33806000 0x1e00>;
+		sprd,normal-captue-linklilst-node2 = <0x33807e00 0x200>;
+		sprd,audcp-aon-iram = <0xa400 0x1000>;
+		memory-region = <0xdd 0xde>;
+	};
+
+	audio-dsp-dump@0 {
+		compatible = "sprd,audio_dsp_log";
+		sprd-usemem-type = <0x05>;
+		sprd-dst = [01];
+		sprd-channel = [04];
+		sprd-rxblocknum = <0x08>;
+		sprd-rxblocksize = <0x2000>;
+	};
+
+	audio-dsp-dump@1 {
+		compatible = "sprd,audio_dsp_pcm";
+		sprd-usemem-type = <0x05>;
+		sprd-dst = [01];
+		sprd-channel = [03];
+		sprd-rxblocknum = <0x08>;
+		sprd-rxblocksize = <0x2000>;
+	};
+
+	audio-dsp-dump@2 {
+		compatible = "sprd,audio_dsp_mem";
+		sprd-usemem-type = <0x09>;
+		sprd-usemem-bytes = <0x80000>;
+		sprd-dst = [01];
+		sprd-channel = [05];
+		sprd,dspdumpmem = <0x33000000 0x10000 0xa400 0x1000 0x89300000 0x5f000>;
+	};
+
+	audio_pipe_voice {
+		compatible = "sprd,audio_pipe_voice";
+		sprd,writesync = <0x00>;
+		sprd,maxuserwritebufsize = <0x00>;
+		sprd,channel = <0x02>;
+	};
+
+	audio_pipe_effect {
+		compatible = "sprd,audio_pipe_effect";
+		sprd,writesync = <0x01>;
+		sprd,maxuserwritebufsize = <0x400>;
+		sprd,channel = <0x08>;
+	};
+
+	audio_pipe_voiceproc {
+		compatible = "sprd,audio_pipe_recordproc";
+		sprd,writesync = <0x01>;
+		sprd,maxuserwritebufsize = <0x400>;
+		sprd,channel = <0x09>;
+	};
+
+	audiocp_boot {
+		compatible = "sprd,roc1-audcp-boot";
+		syscons = <0x02 0x60 0x2000000 0x02 0x5c 0x1000000 0x02 0xcc 0x10 0x02 0xb0 0x400 0x02 0xb0 0x200 0x02 0x6b0 0x7ff 0x02 0x58c 0xff 0x02 0x58c 0xff00 0x02 0xd4 0xf000 0x10 0x78 0xffff 0x10 0x140 0xffffffff 0x10 0x144 0x01>;
+		syscon-names = "sysshutdown", "coreshutdown", "deepsleep", "corereset", "sysreset", "reset_sel", "sysstatus", "corestatus", "sleepstatus", "bootprotect", "bootvector", "bootaddress_sel";
+	};
+
+	audiocp-dvfs {
+		compatible = "sprd,roc1-audcp-dvfs", "sprd,sharkl5-audcp-dvfs";
+		sprd,channel = <0x0a>;
+	};
+

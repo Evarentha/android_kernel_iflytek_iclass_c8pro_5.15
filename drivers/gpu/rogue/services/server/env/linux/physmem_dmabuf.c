@@ -2,6 +2,7 @@
 @File           physmem_dmabuf.c
 @Title          dmabuf memory allocator
 @Copyright      Copyright (c) Imagination Technologies Ltd. All Rights Reserved
+@Copyright      Copyright (C) 2026 Evarentha
 @Description    Part of the memory management. This module is responsible for
                 implementing the function callbacks for dmabuf memory.
 @License        Dual MIT/GPLv2

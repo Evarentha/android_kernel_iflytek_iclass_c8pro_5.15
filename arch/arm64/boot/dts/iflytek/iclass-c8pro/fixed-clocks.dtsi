@@ -1,0 +1,119 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+	ext_26m: ext-26m {
+		compatible = "fixed-clock";
+		#clock-cells = <0x00>;
+		clock-frequency = <0x18cba80>;
+		clock-output-names = "ext-26m";
+		phandle = <0x7a>;
+	};
+
+	clk_13m: clk-13m {
+		compatible = "fixed-factor-clock";
+		#clock-cells = <0x00>;
+		clock-mult = <0x01>;
+		clock-div = <0x02>;
+		clocks = <0x7a>;
+		clock-output-names = "clk-13m";
+		phandle = <0x1a6>;
+	};
+
+	clk_6m5: clk-6m5 {
+		compatible = "fixed-factor-clock";
+		#clock-cells = <0x00>;
+		clock-mult = <0x01>;
+		clock-div = <0x04>;
+		clocks = <0x7a>;
+		clock-output-names = "clk-6m5";
+		phandle = <0x1a7>;
+	};
+
+	clk_4m3: clk-4m3 {
+		compatible = "fixed-factor-clock";
+		#clock-cells = <0x00>;
+		clock-mult = <0x01>;
+		clock-div = <0x06>;
+		clocks = <0x7a>;
+		clock-output-names = "clk-4m3";
+		phandle = <0x1a8>;
+	};
+
+	clk_2m: clk-2m {
+		compatible = "fixed-factor-clock";
+		#clock-cells = <0x00>;
+		clock-mult = <0x01>;
+		clock-div = <0x0d>;
+		clocks = <0x7a>;
+		clock-output-names = "clk-2m";
+		phandle = <0x1a9>;
+	};
+
+	clk_1m: clk-1m {
+		compatible = "fixed-factor-clock";
+		#clock-cells = <0x00>;
+		clock-mult = <0x01>;
+		clock-div = <0x1a>;
+		clocks = <0x7a>;
+		clock-output-names = "clk-1m";
+		phandle = <0x1aa>;
+	};
+
+	clk_250k: clk-250k {
+		compatible = "fixed-factor-clock";
+		#clock-cells = <0x00>;
+		clock-mult = <0x01>;
+		clock-div = <0x68>;
+		clocks = <0x7a>;
+		clock-output-names = "clk-250k";
+		phandle = <0x1ab>;
+	};
+
+	ext_32k: ext_32k {
+		compatible = "fixed-clock";
+		#clock-cells = <0x00>;
+		clock-frequency = <0x8000>;
+		clock-output-names = "ext-32k";
+		phandle = <0x25>;
+	};
+
+	rco_100m: rco-100m {
+		compatible = "fixed-clock";
+		#clock-cells = <0x00>;
+		clock-frequency = <0x5f5e100>;
+		clock-output-names = "rco-100m";
+		phandle = <0xdf>;
+	};
+
+	rco_25m: rco-25m {
+		compatible = "fixed-factor-clock";
+		#clock-cells = <0x00>;
+		clock-mult = <0x01>;
+		clock-div = <0x04>;
+		clocks = <0xdf>;
+		clock-output-names = "rco-25m";
+		phandle = <0x1ac>;
+	};
+
+	rco_4m: rco-4m {
+		compatible = "fixed-factor-clock";
+		#clock-cells = <0x00>;
+		clock-mult = <0x01>;
+		clock-div = <0x19>;
+		clocks = <0xdf>;
+		clock-output-names = "rco-4m";
+		phandle = <0x1ad>;
+	};
+
+	rco_2m: rco-2m {
+		compatible = "fixed-factor-clock";
+		#clock-cells = <0x00>;
+		clock-mult = <0x01>;
+		clock-div = <0x32>;
+		clocks = <0xdf>;
+		clock-output-names = "rco-2m";
+		phandle = <0x1ae>;
+	};
+

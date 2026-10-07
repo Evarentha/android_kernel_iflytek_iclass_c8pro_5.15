@@ -1,3 +1,4 @@
+/* Copyright (C) 2026 Evarentha - Mitochodria compatibility changes. */
 #include "util.h"
 #include <linux/err.h>
 #include <linux/fs.h>

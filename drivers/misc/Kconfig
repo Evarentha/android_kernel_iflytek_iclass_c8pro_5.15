@@ -5,8 +5,8 @@
 
 menu "Misc devices"
 
-config MITOCHODRIA_C8PRO_BLUETOOTH
-	bool "C8Pro Broadcom UART board control"
+config MITOCHODRIA_BCM_UART_LPM
+	bool "Mitochodria Broadcom UART legacy LPM control"
 	depends on OF && GPIOLIB && RFKILL=y && PROC_FS && PM_SLEEP
 	help
 	  Board-level power and wake handshake for the factory Android Bluetooth

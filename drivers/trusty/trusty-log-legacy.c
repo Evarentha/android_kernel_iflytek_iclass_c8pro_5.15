@@ -1,5 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0-only
-/* Contiguous shared-log ABI used by the ROC1 factory Trusty firmware. */
+/*
+ * ROC1 Legacy Trusty Log Transport
+ *
+ * Implements the contiguous shared-log ABI of the factory Trusty firmware.
+ *
+ * Authors:
+ * worryzu <worryzu@gmail.com> @LinearTeam
+ *
+ * Copyright (C) 2026 Evarentha
+ */
 #include <linux/log2.h>
 #include <linux/mm.h>
 #include <linux/module.h>

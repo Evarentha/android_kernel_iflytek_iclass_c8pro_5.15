@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2020 Unisoc Inc.
+ * Copyright (C) 2026 Evarentha
  */
 
 #include <linux/dma-buf.h>
@@ -277,10 +278,6 @@ struct drm_gem_object *sprd_gem_prime_import_sg_table(struct drm_device *drm,
 	} else if (!(strcmp(attach->dmabuf->exp_name, "system") &&
 	      strcmp(attach->dmabuf->exp_name, "system-uncached")))
 		sprd_gem->need_iommu = true;
-	if (IS_ENABLED(CONFIG_MITOCHODRIA_C8PRO_USER_DIAG))
-		pr_info_once("C8DIAG gem exporter=%s size=%zu nents=%u iommu=%d addr=%pad\n",
-			attach->dmabuf->exp_name, attach->dmabuf->size,
-			sgtb->nents, sprd_gem->need_iommu, &sprd_gem->dma_addr);
 
 	return &sprd_gem->base;
 }

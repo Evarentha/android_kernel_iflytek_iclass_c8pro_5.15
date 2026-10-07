@@ -3,6 +3,7 @@
  *  fs/timerfd.c
  *
  *  Copyright (C) 2007  Davide Libenzi <davidel@xmailserver.org>
+ *  Copyright (C) 2026 Evarentha
  *
  *
  *  Thanks to Thomas Gleixner for code reviews and useful comments.
@@ -482,9 +483,6 @@ SYSCALL_DEFINE2(timerfd_create, int, clockid, int, flags)
 			if (old)
 				fput(old);
 		}
-		if (IS_ENABLED(CONFIG_MITOCHODRIA_C8PRO_USER_DIAG))
-			pr_info("C8DIAG timerfd vendor clock=%d fd=%d pid=%d\n",
-				clockid, ufd, task_pid_nr(current));
 	}
 
 	return ufd;

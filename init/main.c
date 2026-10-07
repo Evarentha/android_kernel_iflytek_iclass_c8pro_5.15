@@ -959,6 +959,7 @@ asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
 	boot_cpu_init();
 	page_address_init();
 	pr_notice("%s", linux_banner);
+	pr_notice("LinearTeam Mitochodria Kernel/%s\n", UTS_RELEASE);
 	early_security_init();
 	setup_arch(&command_line);
 	setup_boot_config();
@@ -972,7 +973,6 @@ asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
 	page_alloc_init();
 
 	pr_notice("Kernel command line: %s\n", saved_command_line);
-	pr_notice("LinearTeam Mitochodria Kernel/%s\n", UTS_RELEASE);
 	/* parameters may set static keys */
 	jump_label_init();
 	parse_early_param();

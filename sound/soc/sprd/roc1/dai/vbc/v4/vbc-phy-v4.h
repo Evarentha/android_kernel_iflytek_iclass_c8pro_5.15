@@ -532,7 +532,7 @@ enum VBC_FIFO_WARTERMARK_TYPE {
 #define SND_VBC_DSP_IO_KCTL_SET 9
 #define SND_VBC_DSP_IO_SHAREMEM_GET 10
 #define SND_VBC_DSP_IO_SHAREMEM_SET 11
-#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+#ifdef CONFIG_MITOCHODRIA_VBC_LEGACY_ABI
 #define SND_VBC_DSP_FUNC_HW_TRIGGER_AFTER_DMA 12
 #endif
 
@@ -1293,7 +1293,7 @@ struct snd_pcm_startup_paras {
 	struct sbcenc_param_t sbcenc_para;
 	struct ivsense_smartpa_t ivs_smtpa;
 	struct vbc_iis_mst_sel_para mst_sel_para[IIS_MST_SEL_ID_MAX];
-#ifndef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+#ifndef CONFIG_MITOCHODRIA_VBC_LEGACY_ABI
 	u16 voice_record_type;
 #endif
 };
@@ -1536,7 +1536,7 @@ int vbc_dsp_func_shutdown(int scene_id, int stream,
 int vbc_dsp_func_hwparam(int scene_id, int stream,
 	struct sprd_vbc_stream_hw_paras *hw_data);
 int vbc_dsp_func_trigger(int id, int stream, int up_down);
-#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+#ifdef CONFIG_MITOCHODRIA_VBC_LEGACY_ABI
 int vbc_dsp_func_trigger_after_dma(int id, int stream, int up_down);
 #endif
 int aud_dig_iis_master(struct snd_soc_card *card, int setting);

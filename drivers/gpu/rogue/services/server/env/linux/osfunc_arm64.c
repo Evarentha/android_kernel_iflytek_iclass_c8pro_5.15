@@ -2,6 +2,7 @@
 @File
 @Title          arm specific OS functions
 @Copyright      Copyright (c) Imagination Technologies Ltd. All Rights Reserved
+@Copyright      Copyright (C) 2026 Evarentha
 @Description    OS functions who's implementation are processor specific
 @License        Dual MIT/GPLv2
 

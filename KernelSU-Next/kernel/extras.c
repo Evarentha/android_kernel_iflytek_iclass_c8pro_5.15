@@ -23,7 +23,7 @@ static atomic_t disable_spoof = ATOMIC_INIT(1);
 void ksu_avc_spoof_enable();
 void ksu_avc_spoof_disable();
 
-static bool ksu_avc_spoof_enabled = !IS_ENABLED(CONFIG_KSU_C8PRO_DIAGNOSTIC);
+static bool ksu_avc_spoof_enabled = !IS_ENABLED(CONFIG_KSU_MITOCHODRIA_COMPAT);
 static bool boot_completed = false;
 
 static int avc_spoof_feature_get(u64 *value)

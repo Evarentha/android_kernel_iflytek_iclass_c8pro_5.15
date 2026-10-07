@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2020 Unisoc Inc.
+ * Copyright (C) 2026 Evarentha
  */
 
 #include <linux/dma-buf.h>
@@ -47,9 +48,6 @@ int sprd_crtc_iommu_map(struct device *dev,
 	}
 
 	sprd_gem->dma_addr = iommu_data.iova_addr;
-	if (IS_ENABLED(CONFIG_MITOCHODRIA_C8PRO_USER_DIAG))
-		pr_info_once("C8DIAG display-map exporter=%s size=%zu iova=%pad\n",
-			dma_buf->exp_name, dma_buf->size, &sprd_gem->dma_addr);
 
 	return 0;
 }

@@ -1115,30 +1115,11 @@ void mcdt_dac_dma_disable(unsigned int channel)
 	g_dac_channel[channel].dma_channel = 0;
 }
 
-static void mcdt_capture_dump(unsigned int channel)
-{
-	/* Status registers only: reading RXD would consume captured data. */
-	if (channel != MCDT_CHAN4 || !g_adc_channel[channel].dma_enabled)
-		return;
-	if (!check_agcp_mcdt_clock()) {
-		pr_info("C8MCDT capture clock off\n");
-		return;
-	}
-	pr_info("C8MCDT capture en=%08x cfg=%08x ack=%08x fifo=%08x addr=%08x watermark=%08x\n",
-		mcdt_reg_read(membase + MCDT_DMA_EN),
-		mcdt_reg_read(membase + MCDT_DMA_CFG1),
-		mcdt_reg_read(membase + MCDT_DMA_CFG4),
-		mcdt_reg_read(membase + MCDT_CH_FIFO_ST1),
-		mcdt_reg_read(membase + MCDT_ADC4_FIFO_ADDR_ST),
-		mcdt_reg_read(membase + MCDT_ADC4_WTMK));
-}
-
 void mcdt_adc_dma_disable(unsigned int channel)
 {
 	if (!g_adc_channel[channel].dma_enabled)
 		return;
 
-	mcdt_capture_dump(channel);
 	mcdt_ad_dma_enable(channel, 0);
 	mcdt_ad_fifo_clr(channel);
 	mutex_lock(&mcdt_mutex);
@@ -1178,8 +1159,6 @@ int mcdt_dac_disable(unsigned int channel)
 
 int mcdt_adc_disable(unsigned int channel)
 {
-	mcdt_capture_dump(channel);
-
 	if (g_adc_channel[channel].int_enabled) {
 		if (gadc_irq_desc[channel].irq_handler) {
 			mcdt_ad_int_en(channel, 0);

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016-2018 Spreadtrum Communications Inc.
+ * Copyright (C) 2026 Evarentha
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
  * may be copied, distributed, and modified under those terms.
@@ -151,15 +152,19 @@ static void wcn_bus_change_state(struct wcn_pcie_info *bus,
 static irqreturn_t sprd_pcie_msi_irq(int irq, void *arg)
 {
 	struct wcn_pcie_info *priv = arg;
+	int vector;
 
 	/*
 	 * priv->irq : the first msi irq
 	 * irq: the current irq
 	 */
-	irq -= priv->irq;
-	msi_irq_handle(irq);
-
-	return IRQ_HANDLED;
+	for (vector = 0; vector < priv->irq_num; vector++) {
+		if (pci_irq_vector(priv->dev, vector) == irq) {
+			msi_irq_handle(vector);
+			return IRQ_HANDLED;
+		}
+	}
+	return IRQ_NONE;
 }
 
 static irqreturn_t sprd_pcie_legacy_irq(int irq, void *arg)
@@ -226,19 +231,17 @@ char *pcie_bar_vmem(struct wcn_pcie_info *priv, int bar)
 
 int dmalloc(struct wcn_pcie_info *priv, struct dma_buf *dm, int size)
 {
-	struct device *dev = &(priv->dev->dev);
+	struct device *dev;
 
-	if (!dev) {
+	if (!priv || !priv->dev) {
 		WCN_ERR("%s(NULL)\n", __func__);
 		return ERROR;
 	}
+	dev = &priv->dev->dev;
 
-	if (dma_set_mask(dev, DMA_BIT_MASK(64))) {
-		WCN_INFO("dma_set_mask err\n");
-		if (dma_set_coherent_mask(dev, DMA_BIT_MASK(64))) {
-			WCN_ERR("dma_set_coherent_mask err\n");
-			return ERROR;
-		}
+	if (dma_set_mask_and_coherent(dev, DMA_BIT_MASK(64))) {
+		WCN_ERR("dma_set_mask_and_coherent err\n");
+		return ERROR;
 	}
 
 	dm->vir =
@@ -657,6 +660,7 @@ unsigned int sprd_pcie_get_carddump_status(void)
 static struct platform_device *to_pdev_from_ep_node(struct device_node *ep_node)
 {
 	struct device_node *pdev_node;
+	struct platform_device *pdev;
 
 	WCN_INFO("%s\n", __func__);
 	pdev_node = of_parse_phandle(ep_node, "sprd,rc-ctrl", 0);
@@ -665,7 +669,9 @@ static struct platform_device *to_pdev_from_ep_node(struct device_node *ep_node)
 		return NULL;
 	}
 
-	return of_find_device_by_node(pdev_node);
+	pdev = of_find_device_by_node(pdev_node);
+	of_node_put(pdev_node);
+	return pdev;
 }
 
 /* called by chip_power_on */
@@ -675,21 +681,27 @@ int sprd_pcie_scan_card(void *wcn_dev)
 	struct platform_device *pdev;
 	struct device *dev;
 	struct marlin_device *marlin_dev = wcn_dev;
+	int ret;
 
-	init_completion(&priv->scan_done);
+	if (!priv)
+		return -ENODEV;
+
+	if (priv->dev)
+		return 0;
+	reinit_completion(&priv->scan_done);
 	WCN_INFO("device node name: %s\n", marlin_dev->np->name);
 	pdev = to_pdev_from_ep_node(marlin_dev->np);
 	if (!pdev) {
 		WCN_ERR("can't get pcie rc node\n");
-		return 0;
+		return -EPROBE_DEFER;
 	}
 	dev = &pdev->dev;
 	WCN_INFO("%s: rc node name: %s\n", __func__, dev->of_node->name);
 
-	if (priv->dev)
-		WCN_ERR("%s: card not NULL\n", __func__);
-
-	sprd_pcie_configure_device(pdev);
+	ret = sprd_pcie_configure_device(pdev);
+	put_device(dev);
+	if (ret)
+		return ret;
 
 	if (wait_for_completion_timeout(&priv->scan_done,
 	    msecs_to_jiffies(5000)) == 0) {
@@ -721,11 +733,12 @@ static int disable_pcie_irq(void)
 
 	if (priv->msi_en == 1) {
 		for (i = 0; i < priv->irq_num; i++) {
-			if (!free_irq(priv->irq + i, (void *)priv))
-				return -1;
+			free_irq(pci_irq_vector(priv->dev, i), priv);
 		}
 
-		pci_disable_msi(priv->dev);
+		pci_free_irq_vectors(priv->dev);
+		priv->msi_en = 0;
+		priv->irq_en = 0;
 	}
 
 	return 0;
@@ -749,6 +762,9 @@ void sprd_pcie_remove_card(void *wcn_dev)
 	struct device *dev;
 	struct marlin_device *marlin_dev = wcn_dev;
 	int wait_cnt = 0;
+
+	if (!priv || !priv->dev)
+		return;
 
 	/* prevent at+loopcheck send */
 	atomic_add(BUS_REMOVE_CARD_VAL, &priv->xmit_cnt);
@@ -795,10 +811,8 @@ void sprd_pcie_remove_card(void *wcn_dev)
 	WCN_INFO("%s: rc node name: %s\n",
 			__func__, dev->of_node->name);
 
-	if (!priv->dev || priv->dev)
-		WCN_ERR("%s: card exist!\n", __func__);
-
 	sprd_pcie_unconfigure_device(pdev);
+	put_device(dev);
 
 	if (wait_for_completion_timeout(&priv->remove_done,
 					msecs_to_jiffies(5000)) == 0)
@@ -816,6 +830,8 @@ static int sprd_pcie_probe(struct pci_dev *pdev,
 	unsigned int val32;
 
 	int ret = -ENODEV, i, flag;
+	int requested_irqs = 0;
+	bool regions = false;
 
 	WCN_INFO("%s Enter\n", __func__);
 
@@ -828,9 +844,10 @@ static int sprd_pcie_probe(struct pci_dev *pdev,
 	pci_set_drvdata(pdev, priv);
 
 	/* enable device */
-	if (pci_enable_device(pdev)) {
+	ret = pci_enable_device(pdev);
+	if (ret) {
 		WCN_ERR("cannot enable device:%s\n", pci_name(pdev));
-		goto err_out;
+		goto err_clear_device;
 	}
 
 	/* enable bus master capability on device */
@@ -849,15 +866,21 @@ static int sprd_pcie_probe(struct pci_dev *pdev,
 	if (priv->msi_en == 1) {
 		priv->irq_num = pci_msi_vec_count(pdev);
 		WCN_INFO("pci_msix_vec_count ret %d\n", priv->irq_num);
+		if (priv->irq_num <= 0) {
+			ret = priv->irq_num < 0 ? priv->irq_num : -ENODEV;
+			goto err_disable;
+		}
 
 		ret = pci_alloc_irq_vectors(pdev, 1, priv->irq_num,
 					    PCI_IRQ_MSI);
 		if (ret > 0) {
 			WCN_INFO("pci_enable_msi_range %d ok\n", ret);
 			priv->msi_en = 1;
+			priv->irq_num = ret;
 		} else {
 			WCN_INFO("pci_enable_msi_range err=%d\n", ret);
 			priv->msi_en = 0;
+			goto err_disable;
 		}
 		priv->irq = pdev->irq;
 	}
@@ -898,7 +921,7 @@ static int sprd_pcie_probe(struct pci_dev *pdev,
 			WCN_ERR("%s:cannot remap mmio, aborting\n",
 				pci_name(pdev));
 			ret = -EIO;
-			goto err_out;
+			goto err_unmap;
 		}
 		WCN_INFO("BAR(%d) (0x%lx, 0x%lx, 0x%lx, 0x%lx, 0x%lx)\n", i,
 			 (unsigned long)priv->bar[i].mmio_start,
@@ -910,9 +933,9 @@ static int sprd_pcie_probe(struct pci_dev *pdev,
 	priv->bar_num = 8;
 	ret = pci_request_regions(pdev, DRVER_NAME);
 	if (ret) {
-		priv->in_use = 1;
-		goto err_out;
+		goto err_unmap;
 	}
+	regions = true;
 
 	if (priv->legacy_en == 1) {
 		ret = request_irq(priv->irq,
@@ -929,14 +952,15 @@ static int sprd_pcie_probe(struct pci_dev *pdev,
 	if (priv->msi_en == 1) {
 		for (i = 0; i < priv->irq_num; i++) {
 			ret =
-			    request_irq(priv->irq + i,
+			    request_irq(pci_irq_vector(pdev, i),
 					(irq_handler_t) (&sprd_pcie_msi_irq),
 					IRQF_SHARED, DRVER_NAME, (void *)priv);
 			if (ret) {
 				WCN_ERR("%s request_irq(%d), error %d\n",
 					__func__, priv->irq + i, ret);
-				break;
+				goto err_irqs;
 			}
+			requested_irqs++;
 			WCN_INFO("%s request_irq(%d) ok\n", __func__,
 				 priv->irq + i);
 		}
@@ -962,12 +986,11 @@ static int sprd_pcie_probe(struct pci_dev *pdev,
 	device_wakeup_enable(&(pdev->dev));
 	ret = sprd_ep_addr_map(priv);
 	if (ret < 0)
-		return ret;
+		goto err_irqs;
 
 	wcn_bus_change_state(priv, WCN_BUS_UP);
 	atomic_set(&priv->xmit_cnt, 0x0);
 	atomic_set(&priv->is_suspending, 0);
-	complete(&priv->scan_done);
 
 	edma_init(priv);
 	atomic_set(&priv->edma_ready, 0x1);
@@ -988,9 +1011,28 @@ static int sprd_pcie_probe(struct pci_dev *pdev,
 	//if (scan_card_notify != NULL)
 	//	scan_card_notify();
 	marlin_scan_finish();
+	complete(&priv->scan_done);
 	WCN_INFO("%s ok\n", __func__);
 	return 0;
 
+err_irqs:
+	while (requested_irqs)
+		free_irq(pci_irq_vector(pdev, --requested_irqs), priv);
+	if (regions)
+		pci_release_regions(pdev);
+err_unmap:
+	for (i = 0; i < 8; i++) {
+		if (priv->bar[i].mem)
+			iounmap(priv->bar[i].mem);
+		priv->bar[i].mem = NULL;
+		priv->bar[i].vmem = NULL;
+	}
+	pci_free_irq_vectors(pdev);
+err_disable:
+	pci_disable_device(pdev);
+err_clear_device:
+	priv->dev = NULL;
+	pci_set_drvdata(pdev, NULL);
 err_out:
 	return ret;
 }
@@ -1002,6 +1044,11 @@ static void sprd_pcie_remove(struct pci_dev *pdev)
 
 	WCN_INFO("%s\n", __func__);
 	priv = (struct wcn_pcie_info *) pci_get_drvdata(pdev);
+	if (priv->msi_en) {
+		for (i = 0; i < priv->irq_num; i++)
+			free_irq(pci_irq_vector(pdev, i), priv);
+		pci_free_irq_vectors(pdev);
+	}
 
 	if (priv->legacy_en == 1)
 		free_irq(priv->irq, (void *)priv);
@@ -1016,12 +1063,15 @@ static void sprd_pcie_remove(struct pci_dev *pdev)
 	for (i = 0; i < priv->bar_num; i++) {
 		if (priv->bar[i].mem)
 			iounmap(priv->bar[i].mem);
+		priv->bar[i].mem = NULL;
+		priv->bar[i].vmem = NULL;
 	}
 	complete(&priv->remove_done);
 	pci_release_regions(pdev);
 	//kfree(priv);
 	pci_set_drvdata(pdev, NULL);
 	pci_disable_device(pdev);
+	priv->dev = NULL;
 
 	WCN_INFO("%s end\n", __func__);
 }
@@ -1150,9 +1200,15 @@ int sprd_pcie_init(void)
 		return -ENOMEM;
 
 	g_pcie_dev = priv;
+	init_completion(&priv->scan_done);
+	init_completion(&priv->remove_done);
 
 	ret = pci_register_driver(&sprd_pcie_driver);
 	WCN_INFO("pci_register_driver ret %d\n", ret);
+	if (ret) {
+		g_pcie_dev = NULL;
+		kfree(priv);
+	}
 
 	return ret;
 }

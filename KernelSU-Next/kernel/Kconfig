@@ -9,13 +9,15 @@ config KSU
 	  To compile as a module, choose M here: the
 	  module will be called kernelsu.
 
-config KSU_C8PRO_DIAGNOSTIC
-	bool "C8Pro diagnostic integration (no SELinux status hiding)"
+config KSU_MITOCHODRIA_COMPAT
+	bool "Mitochodria Android 9 compatibility profile"
 	depends on KSU
 	default n
 	help
-	  Retain the board's observable SELinux state and avoid runtime
-	  SELinux file-operation patching during kernel corruption diagnosis.
+	  Select the Android 9 integration profile: observable SELinux state,
+	  legacy LSM signatures, fscrypt-aware allowlist persistence, bounded
+	  manager discovery retries and manual static-adbd compatibility.
+	  This is a functional compatibility profile, not a logging option.
 
 config KSU_DEBUG
 	bool "KernelSU debug mode"

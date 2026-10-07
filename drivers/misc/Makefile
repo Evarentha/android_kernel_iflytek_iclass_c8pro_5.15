@@ -71,4 +71,4 @@ obj-$(CONFIG_OPEN_DICE)		+= open-dice.o
 obj-$(CONFIG_SPRD_SOCID)	+= sprd_soc_id.o
 obj-y += sprd_dualusb_monitor.o
 obj-y += sprd_wifi_stub.o
-obj-$(CONFIG_MITOCHODRIA_C8PRO_BLUETOOTH) += c8pro_bluetooth.o
+obj-$(CONFIG_MITOCHODRIA_BCM_UART_LPM) += mitochodria_bcm_uart.o

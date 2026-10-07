@@ -1,0 +1,399 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+		ap-apb {
+			compatible = "simple-bus";
+			#address-cells = <0x02>;
+			#size-cells = <0x02>;
+			ranges;
+
+			uart0: serial@70000000 {
+				compatible = "sprd,sc9836-uart";
+				reg = <0x00 0x70000000 0x00 0x100>;
+				interrupts = <0x00 0x02 0x04>;
+				status = "okay";
+				clock-names = "enable", "uart", "source";
+				clocks = <0x8f 0x0e 0x21 0x02 0x7a>;
+				phandle = <0x187>;
+			};
+
+			uart1: serial@70100000 {
+				compatible = "sprd,sc9836-uart";
+				reg = <0x00 0x70100000 0x00 0x100>;
+				interrupts = <0x00 0x03 0x04>;
+				status = "okay";
+				clock-names = "enable", "uart", "source";
+				clocks = <0x8f 0x0f 0x21 0x03 0x7a>;
+				phandle = <0x188>;
+			};
+
+			uart2: serial@70200000 {
+				compatible = "sprd,sc9836-uart";
+				reg = <0x00 0x70200000 0x00 0x100>;
+				pogo-det-gpio = <0x2d 0x48 0x01>;
+				pogo-en-gpio = <0x2d 0x07 0x00>;
+				interrupts = <0x00 0x04 0x04>;
+				pinctrl-names = "pogo_det_gpio", "pogo_u2txd";
+				pinctrl-0 = <0x90>;
+				pinctrl-1 = <0x91>;
+				status = "okay";
+				clock-names = "enable", "uart", "source";
+				clocks = <0x8f 0x10 0x21 0x04 0x07 0x05>;
+				phandle = <0x189>;
+			};
+
+			i2c0: i2c@70300000 {
+				compatible = "sprd,roc1-i2c";
+				reg = <0x00 0x70300000 0x00 0x100>;
+				interrupts = <0x00 0x0b 0x04>;
+				clock-frequency = <0x61a80>;
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+				status = "okay";
+				clock-names = "enable", "i2c", "source";
+				clocks = <0x8f 0x09 0x21 0x05 0x7a>;
+				phandle = <0x18a>;
+
+				sensor_sub: sensor-sub@40 {
+					compatible = "sprd,sensor-sub";
+					reg = <0x40>;
+					pinctrl-names = "default";
+					pinctrl-0 = <&front_camera_mclk>;
+					clock-names = "clk_src", "sensor_eb", "clk_96m", "clk_76m8", "clk_48m", "clk_26m";
+					clocks = <0x06 0x04 0x05 0x0b 0x07 0x04 0x07 0x10 0x07 0x05 0x7a>;
+					vddio-supply = <0x92>;
+					vddcama-supply = <0x93>;
+					vddcamd-supply = <0x94>;
+					vddcammot-supply = <0x95>;
+					sprd,phyid = <0x05>;
+					csi = <0x96>;
+					reset-gpios = <0x2d 0x29 0x00>;
+					power-down-gpios = <0x2d 0x28 0x00>;
+					status = "okay";
+					phandle = <0x18b>;
+				};
+			};
+
+			i2c1: i2c@70400000 {
+				compatible = "sprd,roc1-i2c";
+				reg = <0x00 0x70400000 0x00 0x100>;
+				interrupts = <0x00 0x0c 0x04>;
+				clock-frequency = <0x61a80>;
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+				status = "okay";
+				clock-names = "enable", "i2c", "source";
+				clocks = <0x8f 0x0a 0x21 0x06 0x7a>;
+				phandle = <0x18c>;
+
+				sensor_main: sensor-main@46 {
+					compatible = "sprd,sensor-main";
+					reg = <0x46>;
+					clock-names = "clk_src", "sensor_eb", "clk_96m", "clk_76m8", "clk_48m", "clk_26m";
+					clocks = <0x06 0x03 0x05 0x0c 0x07 0x04 0x07 0x10 0x07 0x05 0x7a>;
+					vddio-supply = <0x92>;
+					vddcama-supply = <0x97>;
+					vddcamd-supply = <0x98>;
+					vddcammot-supply = <0x95>;
+					sprd,phyid = <0x00>;
+					csi = <0x96>;
+					reset-gpios = <0x2d 0x2d 0x00>;
+					power-down-gpios = <0x2d 0x2f 0x00>;
+					status = "okay";
+					phandle = <0x18d>;
+				};
+
+				sensor_main2: sensor-main2@7a {
+					compatible = "sprd,sensor-main2";
+					reg = <0x7a>;
+					clock-names = "clk_src", "sensor_eb", "clk_96m", "clk_76m8", "clk_48m", "clk_26m";
+					clocks = <0x06 0x02 0x05 0x0d 0x07 0x04 0x07 0x10 0x07 0x05 0x7a>;
+					vddio-supply = <0x92>;
+					vddcama-supply = <0x97>;
+					vddcamd-supply = <0x92>;
+					sprd,phyid = <0x03>;
+					csi = <0x99>;
+					reset-gpios = <0x2d 0x2e 0x00>;
+					power-down-gpios = <0x2d 0x2e 0x00>;
+					status = "okay";
+					phandle = <0x18e>;
+				};
+			};
+
+			i2c2: i2c@70500000 {
+				compatible = "sprd,roc1-i2c";
+				reg = <0x00 0x70500000 0x00 0x100>;
+				interrupts = <0x00 0x0d 0x04>;
+				clock-frequency = <0x61a80>;
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+				status = "disabled";
+				clock-names = "enable", "i2c", "source";
+				clocks = <0x8f 0x0b 0x21 0x07 0x7a>;
+				phandle = <0x18f>;
+			};
+
+			i2c3: i2c@70600000 {
+				compatible = "sprd,roc1-i2c";
+				reg = <0x00 0x70600000 0x00 0x100>;
+				interrupts = <0x00 0x0e 0x04>;
+				clock-frequency = <0x61a80>;
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+				status = "disabled";
+				clock-names = "enable", "i2c", "source";
+				clocks = <0x8f 0x0c 0x21 0x08 0x7a>;
+				phandle = <0x190>;
+			};
+
+			i2c4: i2c@70700000 {
+				compatible = "sprd,roc1-i2c";
+				reg = <0x00 0x70700000 0x00 0x100>;
+				interrupts = <0x00 0x0f 0x04>;
+				clock-frequency = <0x61a80>;
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+				status = "okay";
+				clock-names = "enable", "i2c", "source";
+				clocks = <0x8f 0x0d 0x21 0x09 0x7a>;
+				phandle = <0x191>;
+
+				aw8898_l_smartpa: aw8898_smartpa@34 {
+					compatible = "awinic,aw8898_l_smartpa";
+					#sound-dai-cells = <0x01>;
+					reg = <0x34>;
+					reset-gpio = <0x2d 0x10 0x01>;
+					status = "okay";
+					phandle = <0x120>;
+				};
+
+				aw8898_r_smartpa: aw8898_smartpa@35 {
+					compatible = "awinic,aw8898_r_smartpa";
+					#sound-dai-cells = <0x01>;
+					reg = <0x35>;
+					reset-gpio = <0x2d 0x25 0x01>;
+					status = "okay";
+					phandle = <0x192>;
+				};
+			};
+
+			spi0: spi@70800000 {
+				compatible = "sprd,sc9860-spi", "sprd,roc1-spi";
+				reg = <0x00 0x70800000 0x00 0x1000>;
+				interrupts = <0x00 0x05 0x04>;
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+				status = "okay";
+				clock-names = "enable", "spi", "source";
+				clocks = <0x8f 0x05 0x21 0x0a 0x07 0x03>;
+				phandle = <0x193>;
+			};
+
+			spi1: spi@70900000 {
+				compatible = "sprd,sc9860-spi", "sprd,roc1-spi";
+				reg = <0x00 0x70900000 0x00 0x1000>;
+				interrupts = <0x00 0x06 0x04>;
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+				status = "disabled";
+				clock-names = "enable", "spi", "source";
+				clocks = <0x8f 0x06 0x21 0x0b 0x07 0x03>;
+				phandle = <0x194>;
+			};
+
+			spi2: spi@70a00000 {
+				compatible = "sprd,sc9860-spi", "sprd,roc1-spi";
+				reg = <0x00 0x70a00000 0x00 0x1000>;
+				interrupts = <0x00 0x07 0x04>;
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+				status = "disabled";
+				clock-names = "enable", "spi", "source";
+				clocks = <0x8f 0x07 0x21 0x0c 0x07 0x03>;
+				phandle = <0x195>;
+			};
+
+			spi3: spi@70b00000 {
+				compatible = "sprd,sc9860-spi", "sprd,roc1-spi";
+				reg = <0x00 0x70b00000 0x00 0x1000>;
+				interrupts = <0x00 0x08 0x04>;
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+				status = "disabled";
+				clock-names = "enable", "spi", "source";
+				clocks = <0x8f 0x08 0x21 0x0d 0x07 0x03>;
+				phandle = <0x196>;
+			};
+
+			i2s0: i2s@70c00000 {
+				compatible = "sprd,i2s";
+				reg = <0x00 0x70c00000 0x00 0x1000>;
+				sprd,dai_name = "i2s_bt_sco0";
+				sprd,hw_port = <0x00>;
+				sprd,syscon-ap-apb = <0x9a>;
+				#sound-dai-cells = <0x00>;
+				status = "disable";
+				clock-names = "clk_iis0", "clk_twpll_128m", "clk_twpll_153m6";
+				clocks = <0x21 0x0e 0x07 0x0a 0x07 0x0f>;
+				sprd,config_type = "pcm";
+				sprd,slave_timeout = <0xf11>;
+				sprd,fs = <0x1f40>;
+				sprd,bus_type = <0x01>;
+				sprd,rtx_mode = <0x03>;
+				sprd,byte_per_chan = <0x01>;
+				sprd,slave_mode = <0x00>;
+				sprd,lsb = <0x00>;
+				sprd,lrck = <0x00>;
+				sprd,low_for_left = <0x01>;
+				sprd,clk_inv = <0x00>;
+				sprd,pcm_short_frame = <0x01>;
+				sprd,pcm_slot = <0x01>;
+				sprd,pcm_cycle = <0x01>;
+				sprd,tx_watermark = <0x0c>;
+				sprd,rx_watermark = <0x14>;
+				phandle = <0x122>;
+			};
+
+			sdio3: sdio@71400000 {
+				compatible = "sprd,sdhc-r11p1";
+				reg = <0x00 0x71400000 0x00 0x1000>;
+				interrupts = <0x00 0x0a 0x04>;
+				status = "okay";
+				/* 5.15 sdhci-sprd binding: "sdio" = 2X line clock,
+				 * "enable" = AHB gate (was "sdio_clk"/"sdio_ahb_enable"). */
+				clock-names = "sdio", "enable";
+				clocks = <&ap_clk CLK_AP_EMMC_2X>,
+					 <&apapb_gate CLK_EMMC_EB>;
+				/* Match the factory rpll parent for the 2X line clock. */
+				assigned-clocks = <&ap_clk CLK_AP_EMMC_2X>;
+				assigned-clock-parents = <&ana_g5_clk 0x00>;
+				sprd,phy-delay-mmc-hs400es = <0x4b 0x7a 0x3a 0x3a>;
+				sprd,phy-delay-mmc-hs400 = <0x4a 0xd5 0x3c 0x3c>;
+				sprd,phy-delay-mmc-hs200 = <0x7f 0xd5 0xcf 0xcf>;
+				sprd,phy-delay-mmc-ddr52 = <0x16 0x19 0x19 0x19>;
+				sprd,phy-delay-mmc-highspeed = <0x7f 0x9d 0x9c 0x9c>;
+				vmmc-supply = <0x9c>;
+				voltage-ranges = <0xbb8 0xbb8>;
+				bus-width = <0x08>;
+				non-removable;
+				cap-mmc-hw-reset;
+				/*
+				 * TEMP diag: keep HS400 and enhanced strobe disabled
+				 * until CMD25 completion is verified.
+				 */
+				mmc-hs200-1_8v;
+				mmc-ddr-1_8v;
+				sprd,name = "sdio_emmc";
+				sprd,sdio-adma;
+				no-sdio;
+				no-sd;
+				phandle = <0x197>;
+			};
+
+			sdio0: sdio@71100000 {
+				compatible = "sprd,sdhc-r11p1";
+				reg = <0x00 0x71100000 0x00 0x1000>;
+				interrupts = <0x00 0x13 0x04>;
+				status = "okay";
+				clock-names = "sdio", "enable";
+				clocks = <&ap_clk CLK_AP_SDIO0_2X>,
+					 <&apapb_gate CLK_SDIO0_EB>;
+				assigned-clocks = <&ap_clk CLK_AP_SDIO0_2X>;
+				assigned-clock-parents = <&ana_g5_clk 0x00>;
+				syscons = <0x10 0x520 0x200000 0x10 0x520 0x100000 0x10 0x520 0x01 0x10 0x520 0x1fe>;
+				syscon-names = "sd_detect_pol", "sd_hotplug_protect_en", "sd_hotplug_debounce_en", "sd_hotplug_debounce_cn";
+				sprd,phy-delay-sd-uhs-sdr104 = <0x18 0x7f 0x17 0x17>;
+				sprd,phy-delay-sd-uhs-sdr50 = <0x46 0x7f 0x15 0x15>;
+				vmmc-supply = <0x9d>;
+				vqmmc-supply = <0x9e>;
+				voltage-ranges = <0xbb8 0xbb8>;
+				bus-width = <0x04>;
+				sd-uhs-sdr104;
+				sd-uhs-sdr50;
+				sd-uhs-ddr50;
+				sprd,name = "sdio_sd";
+				sprd,sdio-adma;
+				no-sdio;
+				no-mmc;
+				cd-gpios = <0x35 0x19 0x01>;
+				pwr-gpios = <0x2d 0x1f 0x00>;
+				phandle = <0x198>;
+			};
+
+			sdio1: sdio@71200000 {
+				compatible = "sprd,sdhc-r11p1";
+				reg = <0x00 0x71200000 0x00 0x1000>;
+				interrupts = <0x00 0x14 0x04>;
+				status = "disabled";
+				clock-names = "sdio", "enable";
+				clocks = <&ap_clk CLK_AP_SDIO1_2X>,
+					 <&apapb_gate CLK_SDIO1_EB>;
+				bus-width = <0x04>;
+				sprd,name = "sdio_wifi";
+				sprd,sdio-adma;
+				no-sd;
+				no-mmc;
+				phandle = <0x199>;
+			};
+
+			sdio2: sdio@71300000 {
+				compatible = "sprd,sdhc-r11p1";
+				reg = <0x00 0x71300000 0x00 0x1000>;
+				interrupts = <0x00 0x15 0x04>;
+				status = "disabled";
+				phandle = <0x19a>;
+			};
+
+			ufs: ufs@71900000 {
+				compatible = "sprd,ufshc";
+				vcc-supply = <0x9c>;
+				vcc-fixed-regulator;
+				freq-table-hz = <0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
+				#clock-cells = <0x01>;
+				reg = <0x00 0x71900000 0x00 0x10000 0x00 0x71a00000 0x00 0x10000 0x00 0x71800000 0x00 0x10000 0x00 0x32510000 0x00 0x10000 0x00 0x323b8000 0x00 0x4000 0x00 0x323b4000 0x00 0x4000>;
+				reg-names = "ufshci_reg", "ufsutp_reg", "unipro_reg", "ufs_ao_reg", "mphy_reg", "analog_reg";
+				syscons = <0x9a 0x04 0x7800000 0x9f 0x14 0x08 0x10 0x10 0x8000>;
+				syscon-names = "ap_apb_ufs_rst", "anlg_mphy_ufs_rst", "aon_apb_ufs_rst";
+				interrupts = <0x00 0x8c 0x04>;
+				status = "okay";
+				clock-names = "ufs_ao_eb", "ufs_ao_en", "ufs_ahb_enable", "ufs_hci_eb", "ufs_unipro_eb", "ufs_utp_eb";
+				clocks = <0x04 0x22 0x04 0x5b 0x8f 0x1c 0x8f 0x1e 0x8f 0x1d 0x8f 0x1f>;
+				phandle = <0x19b>;
+			};
+
+			apsys_dvfs: apsys-dvfs@71700000 {
+				compatible = "sprd,hwdvfs-apsys-roc1";
+				sprd,top-dvfs-syscon = <&topdvfs_controller>;
+				reg = <0x00 0x71700000 0x00 0x15c>;
+				sprd,ap-dvfs-up-window = <0x40>;
+				sprd,ap-dvfs-down-window = <0x80>;
+				phandle = <0x19c>;
+			};
+
+			iommu_vdsp_edp: iommu_edp@78000000 {
+				compatible = "unisoc,iommuexroc1-edp";
+				reg = <0x00 0x78000000 0x00 0x401600 0x00 0x20700004 0x00 0x60>;
+				iova-base = <0x70000000>;
+				iova-size = <0x10000000>;
+				reg_name = "mmu_interrupt_reg", "mmu_reg";
+				status = "okay";
+				#iommu-cells = <0x00>;
+				phandle = <0xa0>;
+			};
+
+			vdsp: vdsp@78000000 {
+				compatible = "sprd,roc1-vdsp";
+				reg = <0x00 0x78000000 0x00 0x401600 0x00 0x20800000 0x00 0x100>;
+				iommus = <0xa0>;
+				syscons = <0x02 0x20 0x2000000 0x02 0x20 0x8000000 0x02 0x24c 0xff00 0x02 0x584 0x8000000 0x1d 0x3090 0x02 0x1d 0x3090 0x04 0x1d 0x00 0x48 0x1d 0x3094 0x01 0x1d 0x3098 0xffffffff 0x1d 0x309c 0xffffffff 0x1d 0x04 0x38 0x1d 0x04 0x04 0x1d 0x308c 0x3ff00 0x10 0x17c 0xffffffff>;
+				syscon-names = "power", "pd_sel", "dslp_ena", "pw_dbg", "frc_sleep", "stop_en", "enable", "int_mask", "int_s_en_l", "int_s_en_h", "rst", "rst_core", "misc", "vector";
+				interrupts = <0x00 0x27 0x04>;
+				status = "okay";
+				sprd,soc = "roc1";
+				sprd,vdsp-memory = <0xa1>;
+				phandle = <0x19d>;
+			};
+		};
+

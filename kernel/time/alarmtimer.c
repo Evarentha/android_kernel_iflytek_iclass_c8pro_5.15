@@ -9,6 +9,7 @@
  * interface.
  *
  * Copyright (C) 2010 IBM Corporation
+ * Copyright (C) 2026 Evarentha
  *
  * Author: John Stultz <john.stultz@linaro.org>
  */

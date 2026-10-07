@@ -3,6 +3,7 @@
 // Spreadtrum gate clock driver
 //
 // Copyright (C) 2017 Spreadtrum, Inc.
+// Copyright (C) 2026 Evarentha
 // Author: Chunyan Zhang <chunyan.zhang@spreadtrum.com>
 
 #include <linux/clk-provider.h>

@@ -1,0 +1,97 @@
+/*
+ * Spreadtrum Roc1 platform DTS file
+ *
+ * Copyright (C) 2018, Spreadtrum Communications Inc.
+ *
+ * This file is licensed under a dual GPLv2 or X11 license.
+ */
+
+		ipa-apb {
+			compatible = "simple-bus";
+			#address-cells = <2>;
+			#size-cells = <2>;
+			ranges;
+
+			pam_ipa: pam-ipa@21140000 {
+				compatible = "sprd,pam-ipa";
+				reg = <0 0x21140000 0 0x100>;
+				reg-names = "pam-ipa-base";
+				syscons = <&ipa_ahb_regs
+					  REG_IPA_AHB_IPA_EB
+					  MASK_IPA_AHB_PAM_IPA_EB>;
+				syscon-names = "enable";
+
+				power-domains = <&pd_ipa_sys>;
+
+				sprd,cp-ul-intr-to-ap = <0>;
+				sprd,cp-ul-threshold = <1>;
+				sprd,cp-ul-timeout = <5>;
+				sprd,cp-ul-flowctrl-mode = <1>;
+				sprd,cp-ul-enter-flowctrl-watermark = <0x10>;
+				sprd,cp-ul-exit-flowctrl-watermark = <0x04>;
+				sprd,cp-dl-intr-to-ap = <0>;
+				sprd,cp-dl-threshold = <0x10>;
+				sprd,cp-dl-timeout = <0>;
+				sprd,cp-dl-flowctrl-mode = <0>;
+				sprd,cp-dl-enter-flowctrl-watermark = <0x24>;
+				sprd,cp-dl-exit-flowctrl-watermark = <0x04>;
+				sprd,pam-ipa-hw-ver = <1>;
+				sprd,pam-ipa-hw-mode = <0>;
+			};
+
+			ipa_local: sipa@21180000 {
+				compatible = "sprd,roc1-sipa";
+				reg = <0 0x21180000 0 0x00002000>,
+					<0 0x20b10000 0 0x00040000>;
+				reg-names = "glb-base", "iram-base";
+				interrupts = <GIC_SPI 138 IRQ_TYPE_LEVEL_HIGH>;
+				interrupt-names = "local_ipa_irq";
+
+				syscons = <&ipa_ahb_regs
+					  REG_IPA_AHB_IPA_EB
+					  MASK_IPA_AHB_IPA_EB>,
+					  <&pmu_apb_regs
+					  REG_PMU_APB_IPA_FORCE_WAKEUP_CFG
+					  MASK_PMU_APB_IPA_FORCE_WAKEUP>;
+				syscon-names = "enable", "wakeup";
+
+				power-domains = <&pd_ipa_sys>;
+
+				sprd,sipa-bypass-mode = <0>;
+				sprd,need-through-pcie;
+				sprd,wiap-ul-dma;
+
+				sprd,usb-dl-tx = <0 2048>;
+				sprd,usb-dl-rx = <0 2048>;
+				sprd,usb-ul-tx = <0 2048>;
+				sprd,usb-ul-rx = <0 2048>;
+				sprd,cp-dl-tx = <0 4096>;
+				sprd,cp-dl-rx = <0 4096>;
+				sprd,cp-ul-tx = <0 4096>;
+				sprd,cp-ul-rx = <0 4096>;
+				sprd,wifi-dl-tx = <1 128>;
+				sprd,wifi-dl-rx = <1 128>;
+				sprd,wifi-ul-tx = <1 128>;
+				sprd,wifi-ul-rx = <1 128>;
+				sprd,ap-eth-dl-tx = <0 4096>;
+				sprd,ap-eth-dl-rx = <0 4096>;
+				sprd,ap-eth-ul-tx = <0 4096>;
+				sprd,ap-eth-ul-rx = <0 4096>;
+				sprd,ap-ip-dl-tx = <0 4096>;
+				sprd,ap-ip-dl-rx = <0 4096>;
+				sprd,ap-ip-ul-tx = <0 4096>;
+				sprd,ap-ip-ul-rx = <0 4096>;
+			};
+
+			ipa_delegate: sipa-dele@80000000 {
+				compatible = "sprd,roc1-sipa-delegate";
+				reg = <0 0x80000000 0 0x10000000>,
+				      <0 0x2e000000 0 0x00010000>;
+				reg-names = "mem-base", "reg-base";
+
+				sprd,ul-fifo-depth = <4096>;
+				sprd,dl-fifo-depth = <4096>;
+			};
+
+		};
+

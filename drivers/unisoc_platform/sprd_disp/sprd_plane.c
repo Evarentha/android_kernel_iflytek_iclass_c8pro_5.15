@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2020 Unisoc Inc.
+ * Copyright (C) 2026 Evarentha
  */
 
 #include <linux/dma-buf.h>
@@ -121,12 +122,6 @@ static void sprd_plane_atomic_update(struct drm_plane *drm_plane,
 		layer->addr[i] = sprd_gem->dma_addr + drm_state->fb->offsets[i];
 		layer->pitch[i] = drm_state->fb->pitches[i];
 	}
-	if (IS_ENABLED(CONFIG_MITOCHODRIA_C8PRO_USER_DIAG))
-		pr_info_once("C8DIAG plane=%u fmt=%p4cc mod=%llu xfbc=%u header=%u addr=%08x pitch=%u src=%dx%d dst=%ux%u alpha=%u\n",
-			layer->index, &layer->format, drm_state->fb->modifier,
-			layer->xfbc, layer->fbc_hsize_r, layer->addr[0],
-			layer->pitch[0], layer->src_w, layer->src_h,
-			layer->dst_w, layer->dst_h, layer->alpha);
 
 	crtc->pending_planes++;
 }

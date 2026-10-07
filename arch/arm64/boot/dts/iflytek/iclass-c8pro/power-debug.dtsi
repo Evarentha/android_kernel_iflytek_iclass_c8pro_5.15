@@ -1,0 +1,154 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+	power: power-debug {
+		#address-cells = <0x01>;
+		#size-cells = <0x00>;
+		sprd,sys-ap-ahb = <0x1d>;
+		sprd,ap-ahb-reg-tbl = <0x00 0xb7 0x80 0x0c 0x0a 0x0a 0x60 0x10000 0x10000 0x64 0x10000 0x10000 0x68 0x10000 0x10000 0x6c 0x10000 0x10000 0x70 0x10000 0x10000 0x74 0x10000 0x10000 0x78 0x10000 0x10000 0x8c 0x10000 0x10000 0x90 0x10000 0x10000 0x94 0x10000 0x10000 0x98 0x10000 0x10000 0x9c 0x10000 0x10000 0xa0 0x10000 0x10000 0xa4 0x10000 0x10000 0x124 0x10000 0x10000 0x12c 0x10000 0x10000 0x50 0x01 0x01 0x5c 0x01 0x01>;
+		sprd,sys-ap-apb = <0x9a>;
+		sprd,ap-apb-reg-tbl = <0x00 0xc3c1ffef 0x00 0x0c 0x1ff 0x00 0x10 0x0f 0x00>;
+		sprd,sys-pmu-apb = <0x02>;
+		sprd,pmu-apb-reg-tbl = <0xc8 0xffffffff 0x00 0xcc 0xff 0x00 0xd4 0xfffffff 0x00 0x230 0x3fff7f 0x00 0x5d4 0x01 0x01>;
+		sprd,sys-aon-apb = <0x10>;
+		sprd,aon-apb-reg-tbl = <0x00 0xa0 0x00 0x284 0x01 0x00 0x28c 0x01 0x00 0x290 0x01 0x00 0x294 0x01 0x00 0x298 0x01 0x00 0x29c 0x01 0x00 0x300 0x1bd 0x00 0x320 0x01 0x00 0x324 0x03 0x00>;
+		sprd,sys-ap-intc = <0xef 0xf0 0xf1 0xf2 0x38 0xf3>;
+		sprd,ap-intc = <0xf4 0xf5 0xf6 0xf7 0xf8 0xf9>;
+		sprd,pdm-name = <0xfa 0xfb 0xfc 0xfd 0xfe 0xff 0x100 0x101 0x102 0x103 0x104 0x105>;
+		phandle = <0x1bf>;
+
+		sprd_pwr_status0: pwr-status@580 {
+			reg = <0x580>;
+			sprd,bit-width = <0x08>;
+			sprd,bit-index = <0x00 0x08 0x10 0x18>;
+			sprd,pdm-names = "PD_AI_SYS", "PD_AI_CAMBRICON", "PD_AI_POWERVR", "PD_IPA_SYS";
+			phandle = <0xfa>;
+		};
+
+		sprd_pwr_status1: pwr-status@584 {
+			reg = <0x584>;
+			sprd,bit-width = <0x08>;
+			sprd,bit-index = <0x00 0x08 0x10 0x18>;
+			sprd,pdm-names = "PD_AP_SYS", "PD_AP_VDSP", "PD_AP_VSP", "PD_ESE_SYS";
+			phandle = <0xfb>;
+		};
+
+		sprd_pwr_status2: pwr-status@588 {
+			reg = <0x588>;
+			sprd,bit-width = <0x08>;
+			sprd,bit-index = <0x00 0x08 0x18>;
+			sprd,pdm-names = "PD_GPU_TOP", "PD_GPU_RGX_DUST", "PD_MM_TOP";
+			phandle = <0xfc>;
+		};
+
+		sprd_pwr_status3: pwr-status@58C {
+			reg = <0x58c>;
+			sprd,bit-width = <0x08>;
+			sprd,bit-index = <0x00 0x08 0x10 0x18>;
+			sprd,pdm-names = "PD_AUDCP_SYS", "PD_AUDCP_AUDDSP", "PD_PUBCP_SYS", "PD_PUB_SYS";
+			phandle = <0xfd>;
+		};
+
+		sprd_pwr_status4: pwr-status@590 {
+			reg = <0x590>;
+			sprd,bit-width = <0x08>;
+			sprd,bit-index = <0x00 0x08 0x10 0x18>;
+			sprd,pdm-names = "PD_WTLCP_SYS", "PD_WTLCP_LTE_PROC", "PD_WTLCP_LTE_CE", "PD_WTLCP_LTE_DPFEC";
+			phandle = <0xfe>;
+		};
+
+		sprd_pwr_status5: pwr-status@594 {
+			reg = <0x594>;
+			sprd,bit-width = <0x08>;
+			sprd,bit-index = <0x00 0x08 0x10 0x18>;
+			sprd,pdm-names = "PD_WTLCP_HU3GE_A", "PD_WTLCP_HU3GE_B", "PD_WTLCP_LDSP", "PD_WTLCP_TGDSP";
+			phandle = <0xff>;
+		};
+
+		sprd_pwr_status6: pwr-status@59c {
+			reg = <0x59c>;
+			sprd,bit-width = <0x08>;
+			sprd,bit-index = <0x00 0x08 0x10 0x18>;
+			sprd,pdm-names = "PD_APCPU_C0", "PD_APCPU_C1", "PD_APCPU_C2", "PD_APCPU_C3";
+			phandle = <0x100>;
+		};
+
+		sprd_pwr_status7: pwr-status@5a0 {
+			reg = <0x5a0>;
+			sprd,bit-width = <0x08>;
+			sprd,bit-index = <0x00 0x08 0x10 0x18>;
+			sprd,pdm-names = "PD_APCPU_C4", "PD_APCPU_C5", "PD_APCPU_C6", "PD_APCPU_C7";
+			phandle = <0x101>;
+		};
+
+		sprd_pwr_status8: pwr-status@5a4 {
+			reg = <0x5a0>;
+			sprd,bit-width = <0x08>;
+			sprd,bit-index = <0x00 0x08>;
+			sprd,pdm-names = "PD_APCPU_TOP", "PD_WTLCP_TD_PROC";
+			phandle = <0x102>;
+		};
+
+		sprd_apcpu_mode_state0: apcpu-mode-state@5b0 {
+			reg = <0x5b0>;
+			sprd,bit-width = <0x08>;
+			sprd,bit-index = <0x00 0x08 0x10 0x18>;
+			sprd,pdm-names = "APCPU_CORE0_PWR_MODE", "APCPU_CORE1_PWR_MODE", "APCPU_CORE2_PWR_MODE", "APCPU_CORE3_PWR_MODE";
+			phandle = <0x103>;
+		};
+
+		sprd_apcpu_mode_state1: apcu-mode-state@5b4 {
+			reg = <0x5b4>;
+			sprd,bit-width = <0x08>;
+			sprd,bit-index = <0x00 0x08 0x10 0x18>;
+			sprd,pdm-names = "APCPU_CORE4_PWR_MODE", "APCPU_CORE5_PWR_MODE", "APCPU_CORE6_PWR_MODE", "APCPU_CORE7_PWR_MODE";
+			phandle = <0x104>;
+		};
+
+		sprd_apcpu_mode_state2: apcu-mode-state@5b8 {
+			reg = <0x5b8>;
+			sprd,bit-width = <0x08>;
+			sprd,bit-index = <0x00>;
+			sprd,pdm-names = "APCPU_CORINTH_PWR_MODE";
+			phandle = <0x105>;
+		};
+
+		sprd_ap_intc0: ap-intc@0 {
+			reg = <0x00>;
+			sprd,int-names = "null", "null", "AP_UART0", "AP_UART1", "AP_UART2", "AP_SPI0", "AP_SPI1", "AP_SPI2", "AP_SPI3", "AP_SIM0", "AP_EMMC", "AP_I2C0", "AP_I2C1", "AP_I2C2", "AP_I2C3", "AP_I2C4", "AP_IIS0", "AP_IIS1", "AP_IIS2", "AP_SDIO0", "AP_SDIO1", "AP_SDIO2", "CE_SEC", "CE_PUB", "AP_DMA", "DMA_SEC_AP", "GSP", "DISPC", "SLV_FW_AP_INTERRUPT", "DSI_PLL", "DSI0", "DSI1";
+			phandle = <0xf4>;
+		};
+
+		sprd_ap_intc1: ap-intc@1 {
+			reg = <0x00>;
+			sprd,int-names = "null", "null", "VSP", "VDMA", "VDSP_MMU", "VDSP_WDOG", "VDSP", "VDSP_STAT", "AP_BUSMON", "CPP_ARM_INT", "JPG_ARM_INT", "ISP_CH0", "ISP_CH1", "CSI0_CAL_FAILED", "CSI0_CAL_DONE", "CSI0_R2", "CSI0_R1", "CSI1_CAL_FAILED", "CSI1_CAL_DONE", "CSI1_R2", "CSI1_R1", "CSI2_CAL_FAILED", "CSI2_CAL_DONE", "CSI2_R2", "CSI2_R1", "DCAM0_ARM", "DCAM1_ARM", "DCAM2_ARM", "GPU", "GPIO", "THM0", "THM1";
+			phandle = <0xf5>;
+		};
+
+		sprd_ap_intc2: ap-intc@2 {
+			reg = <0x00>;
+			sprd,int-names = "null", "null", "THM2", "KPD", "AON_I2C", "OTG", "ADI", "AON_TMR", "EIC", "AP_TMR0", "AP_TMR1", "AP_TMR2", "AP_TMR3", "AP_TMR4", "AP_SYST", "APCPU_WDG", "AP_WDG", "BUSMON_AON", "MBOX_SRC_AP", "MBOX_TAR_AP", "MBOX_TAR_SIPC_AP_NOWAKEUP", "PWR_UP_AP", "PWR_UP_PUB", "PWR_UP_ALL", "PWR_DOWN_ALL", "SEC_EIC", "SEC_EIC_NON_LAT", "SEC_WDG", "SEC_RTC", "SEC_TMR", "SEC_GPIO", "SLV_FW_AON";
+			phandle = <0xf6>;
+		};
+
+		sprd_ap_intc3: ap-intc@3 {
+			reg = <0x00>;
+			sprd,int-names = "null", "null", "MEM_FW_AON", "AON_32K_DET", "SCC", "IIS", "DEBUG_FILTER", "EXT_RSTB_APCPU", "AON_SYST", "MEM_FW_PUB", "PUB_HDW_DFS_EXIT", "PUB_DFS_ERROR", "PUB_DFS_COMPLETE", "PUB_PTM", "DFI_BUS_MONITOR_PUB", "REG_PUB_DMC_MPU_VIO", "NPMUIRQ0", "NPMUIRQ1", "NPMUIRQ2", "NPMUIRQ3", "NPMUIRQ4", "NPMUIRQ5", "NPMUIRQ6", "NPMUIRQ7", "NCTIIRQ0", "NCTIIRQ1", "NCTIIRQ2", "NCTIIRQ3", "NCTIIRQ4", "NCTIIRQ5", "NCTIIRQ6", "NCTIIRQ7";
+			phandle = <0xf7>;
+		};
+
+		sprd_ap_intc4: ap-intc@4 {
+			reg = <0x00>;
+			sprd,int-names = "null", "null", "NERRIRQ", "AON_I2C1", "AI_POWERVR", "AI_CAMBRICOM_INT_VALID", "AI_MMU_INT", "USB3_IPA", "SLV_FW_IPA", "PAM_IPA_TO_AP_IPA", "MAP_IPA", "UNIPRO_INT", "HCI_INT", "FD", "PAMU3_IPA", "PAM_WIFI_TO_AP_IPA", "IPA_WDG_RST", "NFAULTIRQ", "IRQ_IPA", "FIQ_IPA", "PCIE_G2_MSI_CTRL_IPA", "PCIE_G2_CFG_AER_RC_ERR_IPA", "PCIE_G2_CFG_AER_RC_ERR_MSI_IPA", "G2_RX_MSG_IPA", "G2_ERR_IPA", "PCIE_G3_MSI_CTRL_IPA", "PCIE_G3_CFG_AER_RC_ERR_IPA", "PCIE_G3_CFG_AER_RC_ERR_MSI_IPA", "G3_RX_MSG_IPA", "G3_ERR_IPA", "SLV_FW_1_IPA", "PAMU3_COMFIFO_IPA";
+			phandle = <0xf8>;
+		};
+
+		sprd_ap_intc5: ap-intc@5 {
+			reg = <0x00>;
+			sprd,int-names = "null", "null", "IPACM4INT2AP_IPA", "null", "NERRIRQ0", "NFAULTIRQ0", "APCPU_PMU", "APCPU_ERR", "APCPU_FAULTY", "ACC_PROT_PMU", "ACC_PROT_AON_APB_REG", "APCPU_MODE_ST", "NCLUSTERPMUIRQ", "ANA", "WTLCP_TG_WDG_RST", "WTLCP_LTE_WDG_RST", "MDAR", "AUDCP_CHN_START_CHN0", "AUDCP_CHN_START_CHN1", "AUDCP_CHN_START_CHN2", "AUDCP_CHN_START_CHN3", "AUDCP_DMA", "AUDCP_MCDT", "AUDCP_VBC_AUDRCD", "AUDCP_VBC_AUDPLY", "AUDCP_WDG_RST", "ACC_PROT_PMU", "ACC_PROT_AON_APB_REG", "EIC_NON_LAT", "PUB_DFS_GIVEUP", "PUB_DFS_DENY", "PUB_DFS_VOTE_DONE";
+			phandle = <0xf9>;
+		};
+	};
+

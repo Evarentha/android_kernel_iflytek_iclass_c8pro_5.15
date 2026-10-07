@@ -10,10 +10,10 @@
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/usb/pd.h>
 
-#include "ud710.dtsi"
-#include "sc2730.dtsi"
-#include "ud710-20c11-mach.dtsi"
-#include "ud710-2h10-modem.dtsi"
+#include "ud710/ud710.dtsi"
+#include "sc2730/sc2730-roc1.dtsi"
+#include "ud710/boards/ud710-20c11-mach.dtsi"
+#include "ud710/boards/ud710-2h10-modem.dtsi"
 #include "sprd-sound-fe-be.dtsi"
 #include "lcd/lcd_dummy_mipi.dtsi"
 #include "lcd/lcd_ft8006s_huaxian_mipi_hdp.dtsi"

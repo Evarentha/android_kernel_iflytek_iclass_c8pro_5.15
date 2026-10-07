@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2011 Unisoc Co., Ltd.
+ * Copyright (C) 2026 Evarentha
  * Jinfeng.Lin <Jinfeng.Lin1@unisoc.com>
  *
  * This program is free software; you can redistribute it and/or modify

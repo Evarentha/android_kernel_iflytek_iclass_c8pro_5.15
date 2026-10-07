@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2020 Unisoc Inc.
+ * Copyright (C) 2026 Evarentha
  */
 
 #include <linux/dma-direction.h>
@@ -291,9 +292,6 @@ int gsp_layer_iommu_map(struct gsp_layer *layer, struct device *dev)
 	} else {
 		gsp_layer_addr_set(layer, iommu_data.iova_addr);
 		buf->is_iova = 1;
-		if (IS_ENABLED(CONFIG_MITOCHODRIA_C8PRO_USER_DIAG))
-			pr_info_once("C8DIAG gsp-map exporter=%s size=%zu iova=%lx\n",
-				buf->dmabuf->exp_name, buf->size, iommu_data.iova_addr);
 	}
 done:
 	if (ret < 0)

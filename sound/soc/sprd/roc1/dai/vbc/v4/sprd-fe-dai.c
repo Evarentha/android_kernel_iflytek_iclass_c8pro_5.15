@@ -4,6 +4,7 @@
  * Front end cpu dai of sprd audio driver
  *
  * Copyright (C) 2018 SpreadTrum Ltd.
+ * Copyright (C) 2026 Evarentha
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and

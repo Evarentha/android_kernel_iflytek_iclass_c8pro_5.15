@@ -1,5 +1,15 @@
 /* SPDX-License-Identifier: GPL-2.0 */
-/* C8Pro factory opcode/calibration ABI; included by shub_core.c. */
+/*
+ * Legacy SensorHub Firmware Compatibility
+ *
+ * Implements factory opcode downloads and calibration initialization.
+ * Included by shub_core.c.
+ *
+ * Authors:
+ * worryzu <worryzu@gmail.com> @LinearTeam
+ *
+ * Copyright (C) 2026 Evarentha
+ */
 /* The Android 9 extractor uses /sys/module/shub_core/parameters. */
 #undef MODULE_PARAM_PREFIX
 #define MODULE_PARAM_PREFIX "shub_core."
@@ -26,8 +36,8 @@ struct shub_factory_blob {
 
 static void shub_factory_response(struct shub_data *sensor, u8 *data, u32 len)
 {
-	if (len != 2 || data[0] != SHUB_DOWNLOAD_OPCODE_SUBTYPE ||
-	    data[1] > RESPONSE_TIMEOUT)
+	/* Factory CM4 appends four bytes to the command/status pair. */
+	if (len < 2 || data[0] != SHUB_DOWNLOAD_OPCODE_SUBTYPE)
 		return;
 	sensor->sent_cmddata.status = data[1];
 	WRITE_ONCE(sensor->sent_cmddata.condition, true);

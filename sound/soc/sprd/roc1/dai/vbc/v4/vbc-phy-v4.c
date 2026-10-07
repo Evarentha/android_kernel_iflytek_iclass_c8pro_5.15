@@ -4,6 +4,7 @@
  * SPRD SoC VBC -- SpreadTrum SOC for VBC driver function.
  *
  * Copyright (C) 2015 SpreadTrum Ltd.
+ * Copyright (C) 2026 Evarentha
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -1362,16 +1363,13 @@ int vbc_dsp_func_startup(int scene_id, int stream,
 {
 	int ret;
 
-#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+#ifdef CONFIG_MITOCHODRIA_VBC_LEGACY_ABI
 	/* Offsets verified against the shipped 4.14.98 boot image. */
 	BUILD_BUG_ON(sizeof(*startup_info) != 0x268);
 	BUILD_BUG_ON(offsetof(struct sprd_vbc_stream_startup_shutdown,
 		startup_para.adc_id) != 0x2c);
 	BUILD_BUG_ON(offsetof(struct sprd_vbc_stream_startup_shutdown,
 		startup_para.mst_sel_para) != 0x248);
-	pr_info("C8AUDIO factory startup scene=%d stream=%d bytes=%zu adc=%x\n",
-		scene_id, stream, sizeof(*startup_info),
-		startup_info->startup_para.adc_id);
 #endif
 
 	ret = aud_send_cmd(AMSG_CH_VBC_CTL, scene_id, stream,
@@ -1436,7 +1434,7 @@ int vbc_dsp_func_trigger(int id, int stream, int up_down)
 	return 0;
 }
 
-#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+#ifdef CONFIG_MITOCHODRIA_VBC_LEGACY_ABI
 int vbc_dsp_func_trigger_after_dma(int id, int stream, int up_down)
 {
 	int ret;

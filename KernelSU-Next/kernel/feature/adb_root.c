@@ -1,3 +1,4 @@
+/* Copyright (C) 2026 Evarentha - Mitochodria compatibility changes. */
 #include <asm/ptrace.h>
 #include <linux/namei.h>
 #include <linux/path.h>
@@ -219,7 +220,7 @@ int ksu_adb_root_handle_execveat_manual(struct filename **filename,
 	if (envp->is_compat)
 		return 0;
 #endif
-	if (IS_ENABLED(CONFIG_KSU_C8PRO_DIAGNOSTIC)) {
+	if (IS_ENABLED(CONFIG_KSU_MITOCHODRIA_COMPAT)) {
 		struct path path;
 		struct inode *inode;
 		bool valid;

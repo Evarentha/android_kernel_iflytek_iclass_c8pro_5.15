@@ -1,0 +1,42 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+		ai-axi {
+			compatible = "simple-bus";
+			#address-cells = <0x02>;
+			#size-cells = <0x02>;
+			ranges;
+
+			ipu0: ipu@6fc00000 {
+				compatible = "img,ax21xx-nna";
+				reg = <0x00 0x6fc00000 0x00 0x10000>;
+				interrupts = <0x00 0x84 0x04>;
+				interrupt-names = "ai_powervr";
+				sprd,pd-ai = <0xaf 0xb0>;
+				syscon-names = "reset";
+				syscons = <0xb1 0x04 0x40>;
+				sprd,qos = <0xb2>;
+				clock-names = "top_eb", "pvr_eb", "pvr_clk", "pvr_clk_512m", "pvr_clk_apll", "mtx_clk";
+				clocks = <0xb3 0x00 0xb3 0x04 0xb4 0x01 0x07 0x08 0x07 0x1c 0xb4 0x02>;
+				phandle = <0x19e>;
+			};
+
+			ipu1: ipu@6fe00000 {
+				compatible = "cambricon,1h16-ipu";
+				reg = <0x00 0x6fd08000 0x00 0x80 0x00 0x6fe00000 0x00 0x1000 0x00 0x6fe40000 0x00 0x1000 0x00 0x6ff00000 0x00 0x1000>;
+				reg-names = "ai_iommu", "ipu_regs", "ipu_timer", "boot_iram";
+				interrupts = <0x00 0x85 0x04 0x00 0x86 0x04>;
+				interrupt-names = "ai_cambricon", "ai_mmu";
+				iommus = <0xb5>;
+				sprd,pd-ai = <0xb0 0xaf>;
+				syscon-names = "reset";
+				syscons = <0xb1 0x68 0x01>;
+				sprd,qos = <0xb2>;
+				clock-names = "top_eb", "mmu_eb", "cmbn_eb", "ai_mtx_clk", "cmbn_clk", "clk_src_512m", "clk_scr_768m", "clk_src_apll";
+				clocks = <0xb3 0x00 0xb3 0x02 0xb3 0x03 0xb4 0x02 0xb4 0x00 0x07 0x08 0x07 0x01 0x07 0x1c>;
+				phandle = <0x19f>;
+			};
+		};
+

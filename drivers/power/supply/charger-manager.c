@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (C) 2011 Samsung Electronics Co., Ltd.
+ * Copyright (C) 2026 Evarentha
  * MyungJoo Ham <myungjoo.ham@samsung.com>
  *
  * This driver enables to monitor battery health and control charger

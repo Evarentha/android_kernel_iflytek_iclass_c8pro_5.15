@@ -2,6 +2,7 @@
  * dwc3-sprd.c - Spreadtrum DWC3 Specific Glue layer
  *
  * Copyright (c) 2018 Spreadtrum Co., Ltd.
+ * Copyright (C) 2026 Evarentha
  *		http://www.spreadtrum.com
  *
  * This program is free software: you can redistribute it and/or modify

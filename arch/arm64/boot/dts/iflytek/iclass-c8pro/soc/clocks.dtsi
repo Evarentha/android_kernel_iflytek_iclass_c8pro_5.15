@@ -1,0 +1,179 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+		apahb_gate: apahb-gate {
+			compatible = "sprd,roc1-apahb-gate";
+			sprd,syscon = <0x1d>;
+			clocks = <0x7a>;
+			#clock-cells = <0x01>;
+			phandle = <0x18>;
+		};
+
+		ap_clk: clock-controller@20200000 {
+			compatible = "sprd,roc1-ap-clk";
+			reg = <0x00 0x20200000 0x00 0x1000>;
+			clocks = <0x7a>;
+			#clock-cells = <0x01>;
+			phandle = <0x21>;
+		};
+
+		ipa_gate: ipa-gate {
+			compatible = "sprd,roc1-ipa-gate";
+			sprd,syscon = <0x16>;
+			clocks = <0x7a>;
+			#clock-cells = <0x01>;
+			phandle = <0x23>;
+		};
+
+		ipa_clk: clock-controller@21050000 {
+			compatible = "sprd,roc1-ipa-clk";
+			reg = <0x00 0x21050000 0x00 0x1000>;
+			clocks = <0x7a>;
+			#clock-cells = <0x01>;
+			phandle = <0x24>;
+		};
+
+		aon_clk: clock-controller@32080000 {
+			compatible = "sprd,roc1-aonapb-clk";
+			reg = <0x00 0x32080000 0x00 0x1000>;
+			clocks = <0x7a>;
+			#clock-cells = <0x01>;
+			phandle = <0x7b>;
+		};
+
+		aonapb_gate: aonapb-gate {
+			compatible = "sprd,roc1-aon-gate";
+			sprd,syscon = <0x10>;
+			clocks = <0x7a>;
+			#clock-cells = <0x01>;
+			phandle = <0x04>;
+		};
+
+		pmu_gate: pmu-gate {
+			compatible = "sprd,roc1-pmu-gate";
+			sprd,syscon = <0x02>;
+			clocks = <0x7a>;
+			#clock-cells = <0x01>;
+			phandle = <0x1a0>;
+		};
+
+		dpll: dpll {
+			compatible = "sprd,roc1-g0-pll";
+			reg = <0x00 0x32390000 0x00 0x3000>;
+			clocks = <0x7b 0x2c>;
+			#clock-cells = <0x01>;
+			phandle = <0x1a1>;
+		};
+
+		mpll1: mpll1 {
+			compatible = "sprd,roc1-g4-pll";
+			sprd,syscon = <0x78>;
+			clocks = <0x7b 0x2c>;
+			#clock-cells = <0x01>;
+			phandle = <0x1a2>;
+		};
+
+		ana_g5_clk: ana-g5-clk {
+			compatible = "sprd,roc1-g5-pll";
+			sprd,syscon = <0xb6>;
+			clocks = <0x7b 0x2c>;
+			#clock-cells = <0x01>;
+			phandle = <0x9b>;
+		};
+
+		mpll2: mpll2 {
+			compatible = "sprd,roc1-g9-pll";
+			reg = <0x00 0x32410000 0x00 0x3000>;
+			clocks = <0x7b 0x2c>;
+			#clock-cells = <0x01>;
+			phandle = <0x1a3>;
+		};
+
+		g12_pll: g12-pll {
+			compatible = "sprd,roc1-g12-pll";
+			reg = <0x00 0x32414000 0x00 0x3000>;
+			clocks = <0x7b 0x2c>;
+			#clock-cells = <0x01>;
+			phandle = <0x07>;
+		};
+
+		mpll0: mpll0 {
+			compatible = "sprd,roc1-g17-pll";
+			reg = <0x00 0x32418000 0x00 0x3000>;
+			clocks = <0x7b 0x2c>;
+			#clock-cells = <0x01>;
+			phandle = <0x1a4>;
+		};
+
+		audcpapb_gate: audcpapb-gate {
+			compatible = "sprd,roc1-audcpapb-gate";
+			sprd,syscon = <0xb7>;
+			clocks = <0x7a>;
+			#clock-cells = <0x01>;
+			phandle = <0x1a5>;
+		};
+
+		audcpahb_gate: audcpahb-gate {
+			compatible = "sprd,roc1-audcpahb-gate";
+			sprd,syscon = <0xa2>;
+			clocks = <0x7a>;
+			#clock-cells = <0x01>;
+			phandle = <0xae>;
+		};
+
+		gpu_clk: gpu-clk {
+			compatible = "sprd,roc1-gpu-clk";
+			sprd,syscon = <0x09>;
+			clocks = <0x7b 0x29>;
+			syscons = <0x10 0x00 0x800 0x02 0x30 0x2000000>;
+			syscon-names = "enable", "power";
+			#clock-cells = <0x01>;
+			phandle = <0x0c>;
+		};
+
+		mm_clk: clock-controller@62100000 {
+			compatible = "sprd,roc1-mm-clk";
+			reg = <0x00 0x62100000 0x00 0x1000>;
+			clocks = <0x04 0x08>;
+			#clock-cells = <0x01>;
+			phandle = <0x06>;
+		};
+
+		mm_gate: mm-gate {
+			compatible = "sprd,roc1-mm-gate-clk";
+			sprd,syscon = <0x03>;
+			clocks = <0x04 0x08>;
+			syscons = <0x10 0x00 0x200 0x02 0x24 0x2000000>;
+			syscon-names = "enable", "power";
+			#clock-cells = <0x01>;
+			phandle = <0x05>;
+		};
+
+		ai_gate: ai-gate {
+			compatible = "sprd,roc1-ai-gate-clk";
+			sprd,syscon = <0xb1>;
+			clocks = <0x04 0x0c>;
+			#clock-cells = <0x01>;
+			phandle = <0xb3>;
+		};
+
+		ai_clk: clock-controller@6fd04000 {
+			compatible = "sprd,roc1-ai-clk";
+			reg = <0x00 0x6fd04000 0x00 0x1000>;
+			clocks = <0x7a>;
+			syscons = <0x10 0x00 0x2000 0x02 0x530 0x2000000>;
+			syscon-names = "enable", "power";
+			#clock-cells = <0x01>;
+			phandle = <0xb4>;
+		};
+
+		apapb_gate: apapb-gate {
+			compatible = "sprd,roc1-apapb-gate";
+			sprd,syscon = <0x9a>;
+			clocks = <0x7a>;
+			#clock-cells = <0x01>;
+			phandle = <0x8f>;
+		};
+

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2020 Unisoc Communications Inc.
+ * Copyright (C) 2026 Evarentha
  *
  * Filename : wcn_boot.c
  * Abstract : This file is a implementation for wcn sdio hal function
@@ -1443,6 +1444,10 @@ static int marlin_parse_dt(struct platform_device *pdev)
 		marlin_dev->wait_ge2 = true;
 	}
 
+	/* External PCIe Marlin uses its own crystal; this wait register is SDIO-only. */
+	if (get_wcn_match_config()->unisoc_wcn_pcie)
+		return 0;
+
 	pmu_apb_gpr = syscon_regmap_lookup_by_phandle(np,
 				"sprd,syscon-pmu-apb");
 	if (IS_ERR(pmu_apb_gpr)) {
@@ -2137,10 +2142,88 @@ char *gnss_firmware_path_get(void)
 }
 EXPORT_SYMBOL_GPL(gnss_firmware_path_get);
 
+/* Original ROC1 PCIe image protocol, independent of the SDIO image packer. */
+static int marlin_pcie_load_image(const char *path, u32 size, u32 address,
+				  u32 reset, int bar, u32 base, int region)
+{
+#ifdef BUILD_WCN_PCIE
+	struct wcn_pcie_info *pcie = get_wcn_device_info();
+	struct file *file;
+	u8 *image, *verify;
+	loff_t pos = 0;
+	u32 offset, chunk, zero = 0;
+	ssize_t count;
+	int ret = 0;
+
+	if (!pcie || !path)
+		return -ENODEV;
+	file = filp_open(path, O_RDONLY, 0);
+	if (IS_ERR(file))
+		return PTR_ERR(file);
+	image = vmalloc(size);
+	verify = kmalloc(PACKET_SIZE, GFP_KERNEL);
+	if (!image || !verify) {
+		ret = -ENOMEM;
+		goto out;
+	}
+	while (pos < size) {
+		count = kernel_read(file, image + pos, size - pos, &pos);
+		if (count <= 0) {
+			ret = count < 0 ? count : -EIO;
+			goto out;
+		}
+	}
+	ret = sprd_pcie_bar_map(pcie, bar, base, region);
+	if (ret < 0)
+		goto out;
+	for (offset = 0; offset < size; offset += chunk) {
+		chunk = min_t(u32, size - offset, PACKET_SIZE);
+		ret = pcie_bar_write(pcie, bar, address - base + offset,
+				     image + offset, chunk);
+		if (ret < 0)
+			goto out;
+		ret = pcie_bar_read(pcie, bar, address - base + offset, verify, chunk);
+		if (ret < 0)
+			goto out;
+		if (memcmp(image + offset, verify, chunk)) {
+			ret = -EIO;
+			goto out;
+		}
+	}
+	/* Factory PCIe firmware starts by clearing the complete reset word. */
+	base = reset & ~0x3fffff;
+	ret = sprd_pcie_bar_map(pcie, bar, base, region);
+	if (ret >= 0)
+		ret = pcie_bar_write(pcie, bar, reset - base, &zero, sizeof(zero));
+out:
+	kfree(verify);
+	vfree(image);
+	filp_close(file, NULL);
+	return ret < 0 ? ret : 0;
+#else
+	return -EOPNOTSUPP;
+#endif
+}
+
 static void pre_gnss_download_firmware(struct work_struct *work)
 {
 	static int cali_flag;
 	int ret = -2;
+	bool pcie = get_wcn_match_config()->unisoc_wcn_pcie;
+
+	if (pcie) {
+		/* The factory PCIe sequence restores calibration before loading. */
+		ret = gnss_write_data();
+		if (ret)
+			return;
+		ret = marlin_pcie_load_image(marlin_dev->gnss_path, 0x58000,
+					    0x40a20000, 0x40bc8280, 2, 0x40800000, 1);
+		if (ret) {
+			pr_err("PCIe GNSS image load failed: %d\n", ret);
+			return;
+		}
+		goto calibration;
+	}
 
 	/* ./fstab.xxx is prevent for user space progress */
 	//find_firmware_path();
@@ -2159,6 +2242,7 @@ static void pre_gnss_download_firmware(struct work_struct *work)
 	if (gnss_start_run() != 0)
 		pr_err("gnss start run fail\n");
 
+calibration:
 	if (cali_flag == 0) {
 		pr_info("gnss start to backup calidata\n");
 		ret = gnss_backup_data();
@@ -2180,7 +2264,20 @@ static void pre_gnss_download_firmware(struct work_struct *work)
 static void pre_btwifi_download_sdio(struct work_struct *work)
 {
 	struct wcn_match_data *g_match_config = get_wcn_match_config();
+	int ret;
+
 	flag_download_done = 0;
+	if (g_match_config && g_match_config->unisoc_wcn_pcie) {
+		ret = marlin_pcie_load_image(marlin_dev->btwf_path, 0xf0c00,
+					    0x40500000, 0x40088288, 0, 0x40400000, 0);
+		if (ret) {
+			pr_err("PCIe BTWF image load failed: %d\n", ret);
+			return;
+		}
+		flag_download_done = 1;
+		complete(&marlin_dev->download_done);
+		return;
+	}
 	if (btwifi_download_firmware() == 0 &&
 		marlin_start_run() == 0) {
 		if (g_match_config && !g_match_config->unisoc_wcn_pcie) {
@@ -2208,6 +2305,13 @@ static int bus_scan_card(void)
 {
 	unsigned int card_detect_wait_ms;
 	struct wcn_match_data *g_match_config = get_wcn_match_config();
+	int ret;
+
+	/* PCIe rescan already waits for the endpoint driver's completion. */
+	if (g_match_config && g_match_config->unisoc_wcn_pcie) {
+		ret = sprdwcn_bus_rescan(marlin_dev);
+		return ret;
+	}
 
 	if (g_match_config && g_match_config->unisoc_wcn_usb)
 		card_detect_wait_ms = USB_CARD_DETECT_WAIT_MS;

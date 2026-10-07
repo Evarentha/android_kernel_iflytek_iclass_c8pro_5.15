@@ -1,5 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0
-/* Android 9 modem_control PM firmware loader ABI for the C8Pro CM4. */
+/*
+ * Mitochodria ROC1 CM4 Loader
+ *
+ * Exposes DT-owned firmware segments and reset controls to the TEE loader.
+ *
+ * Authors:
+ * worryzu <worryzu@gmail.com> @LinearTeam
+ *
+ * Copyright (C) 2026 Evarentha
+ */
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/mfd/syscon.h>
@@ -16,7 +25,7 @@ struct cm4_segment {
 	u32 size;
 };
 
-struct c8_cm4 {
+struct mitochodria_cm4 {
 	struct cm4_segment segment[2];
 	struct regmap *aon;
 	u32 reset_reg, reset_mask;
@@ -28,7 +37,7 @@ struct c8_cm4 {
 static ssize_t cm4_info_read(struct file *file, char __user *buf,
 			     size_t count, loff_t *pos)
 {
-	struct c8_cm4 *cm4 = PDE_DATA(file_inode(file));
+	struct mitochodria_cm4 *cm4 = PDE_DATA(file_inode(file));
 
 	return simple_read_from_buffer(buf, count, pos, cm4->segment,
 				       sizeof(cm4->segment));
@@ -37,7 +46,7 @@ static ssize_t cm4_info_read(struct file *file, char __user *buf,
 static ssize_t cm4_control_write(struct file *file, const char __user *buf,
 				size_t count, loff_t *pos)
 {
-	struct c8_cm4 *cm4 = PDE_DATA(file_inode(file));
+	struct mitochodria_cm4 *cm4 = PDE_DATA(file_inode(file));
 	bool start = !strcmp(file->f_path.dentry->d_name.name, "start");
 	int ret;
 
@@ -53,7 +62,7 @@ static ssize_t cm4_control_write(struct file *file, const char __user *buf,
 static ssize_t cm4_image_write(struct file *file, const char __user *buf,
 			      size_t count, loff_t *pos)
 {
-	struct c8_cm4 *cm4 = PDE_DATA(file_inode(file));
+	struct mitochodria_cm4 *cm4 = PDE_DATA(file_inode(file));
 	unsigned int index = !strcmp(file->f_path.dentry->d_name.name, "cali_lib");
 	struct cm4_segment *seg = &cm4->segment[index];
 	u8 *data;
@@ -97,9 +106,9 @@ static const struct proc_ops cm4_image_ops = {
 	.proc_lseek = default_llseek,
 };
 
-static int c8_cm4_probe(struct platform_device *pdev)
+static int mitochodria_cm4_probe(struct platform_device *pdev)
 {
-	struct c8_cm4 *cm4;
+	struct mitochodria_cm4 *cm4;
 	struct resource *res;
 	u32 control[2], split;
 	int i, ret;
@@ -108,7 +117,9 @@ static int c8_cm4_probe(struct platform_device *pdev)
 	if (!cm4)
 		return -ENOMEM;
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res || res->start != 0x800000 || resource_size(res) != 0x40000)
+	/* ldinfo is the legacy 32-bit address/size ABI used by the TEE loader. */
+	if (!res || res->end < res->start || res->end > U32_MAX ||
+	    resource_size(res) > U32_MAX)
 		return -EINVAL;
 	ret = of_property_read_u32(pdev->dev.of_node, "sprd,calibration-offset", &split);
 	if (ret || !split || split >= resource_size(res))
@@ -120,6 +131,8 @@ static int c8_cm4_probe(struct platform_device *pdev)
 	if (ret)
 		return ret;
 	cm4->reset_reg = control[0]; cm4->reset_mask = control[1];
+	if ((control[0] & 3) || !control[1])
+		return -EINVAL;
 	cm4->ram = devm_ioremap_resource(&pdev->dev, res);
 	if (IS_ERR(cm4->ram))
 		return PTR_ERR(cm4->ram);
@@ -129,7 +142,7 @@ static int c8_cm4_probe(struct platform_device *pdev)
 	cm4->segment[1].base = res->start + split;
 	cm4->segment[1].size = resource_size(res) - split;
 	mutex_init(&cm4->lock);
-	cm4->dir = proc_mkdir("c8pro_cm4", NULL);
+	cm4->dir = proc_mkdir("mitochodria_cm4", NULL);
 	if (!cm4->dir)
 		return -ENOMEM;
 	if (!proc_create_data("ldinfo", 0440, cm4->dir, &cm4_info_ops, cm4) ||
@@ -140,27 +153,26 @@ static int c8_cm4_probe(struct platform_device *pdev)
 		if (!proc_create_data(cm4->segment[i].name, 0200, cm4->dir, &cm4_image_ops, cm4))
 			goto fail;
 	platform_set_drvdata(pdev, cm4);
-	dev_info(&pdev->dev, "C8Pro loader ready; awaiting userspace TEE load\n");
 	return 0;
 fail:
 	proc_remove(cm4->dir);
 	return -ENOMEM;
 }
 
-static int c8_cm4_remove(struct platform_device *pdev)
+static int mitochodria_cm4_remove(struct platform_device *pdev)
 {
-	struct c8_cm4 *cm4 = platform_get_drvdata(pdev);
+	struct mitochodria_cm4 *cm4 = platform_get_drvdata(pdev);
 
 	proc_remove(cm4->dir);
 	return 0;
 }
-static const struct of_device_id c8_cm4_match[] = {
-	{ .compatible = "iflytek,c8pro-cm4-loader" }, { }
+static const struct of_device_id mitochodria_cm4_match[] = {
+	{ .compatible = "sprd,roc1-cm4-loader" }, { }
 };
-MODULE_DEVICE_TABLE(of, c8_cm4_match);
-static struct platform_driver c8_cm4_driver = {
-	.probe = c8_cm4_probe, .remove = c8_cm4_remove,
-	.driver = { .name = "c8pro-cm4-loader", .of_match_table = c8_cm4_match },
+MODULE_DEVICE_TABLE(of, mitochodria_cm4_match);
+static struct platform_driver mitochodria_cm4_driver = {
+	.probe = mitochodria_cm4_probe, .remove = mitochodria_cm4_remove,
+	.driver = { .name = "mitochodria-cm4-loader", .of_match_table = mitochodria_cm4_match },
 };
-module_platform_driver(c8_cm4_driver);
+module_platform_driver(mitochodria_cm4_driver);
 MODULE_LICENSE("GPL");

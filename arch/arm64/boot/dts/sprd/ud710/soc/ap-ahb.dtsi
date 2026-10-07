@@ -1,0 +1,365 @@
+/*
+ * Spreadtrum Roc1 platform DTS file
+ *
+ * Copyright (C) 2018, Spreadtrum Communications Inc.
+ *
+ * This file is licensed under a dual GPLv2 or X11 license.
+ */
+
+		ap-ahb {
+			compatible = "simple-bus";
+			#address-cells = <2>;
+			#size-cells = <2>;
+			ranges;
+
+			ap_dma: dma-controller@20000000 {
+				compatible = "sprd,roc1-dma";
+				reg = <0 0x20000000 0 0x4000>;
+				interrupts = <GIC_SPI 24 IRQ_TYPE_LEVEL_HIGH>;
+				#dma-cells = <1>;
+				#dma-channels = <28>;
+				clock-names = "enable";
+				clocks = <&apahb_gate CLK_DMA_PUB_EB>;
+			};
+
+			hsphy: hsphy@20100000 {
+				compatible = "sprd,roc1-phy";
+				sprd,syscon-enable = <&aon_apb_regs>;
+				sprd,syscon-anag3 = <&anlg_phy_g3_regs>;
+				sprd,syscon-anatop = <&anlg_phy_top_regs>;
+				sprd,syscon-pmu-apb = <&pmu_apb_regs>;
+				sprd,vdd-voltage = <3300000>;
+				#phy-cells = <0>;
+			};
+
+			dpu: dpu@20300000 {
+				compatible = "sprd,roc1-dpu";
+				sprd,pmu-syscon = <&pmu_apb_regs>;
+				reg = <0 0x20300000 0 0x1000>;
+				interrupts = <GIC_SPI 27 IRQ_TYPE_LEVEL_HIGH>;
+				status = "disabled";
+				syscons = <&ap_ahb_regs REG_AP_AHB_AHB_RST
+					MASK_AP_AHB_DISPC_SOFT_RST>,
+					<&ap_ahb_regs REG_AP_AHB_AP_QOS2
+					(MASK_AP_AHB_ARQOS_THRESHHOLD_DISP |
+					 MASK_AP_AHB_AWQOS_THRESHHOLD_DISP)>;
+				syscon-names = "reset", "qos";
+				dma-coherent;
+
+				iommus = <&iommu_dispc>;
+				sprd,ip = "dpu-r3p0";
+				sprd,soc = "roc1";
+				sprd,qos = <&dpu_qos>;
+				sprd,wb-memory = <&wb_reserved>;
+
+				dpu_port: port {
+					dpu_out: endpoint {
+						remote-endpoint = <&dsi_in>;
+					};
+				};
+			};
+
+			gsp_core0: gsp@20300000 {
+				compatible = "sprd,gsp-core";
+				reg = <0 0x20300000 0 0x2000>;
+				core-id = <0>;
+				kcfg-num = <16>;
+				interrupts = <GIC_SPI 26 IRQ_TYPE_LEVEL_HIGH>;
+				iommus = <&iommu_dispc>;
+			};
+
+			iommu_dispc: iommu@20300000 {
+				compatible = "sprd,iommuexroc1-dispc";
+				reg = <0 0x20300000 0 0x800>,
+				      <0 0x20300800 0 0x80>;
+				iova-base = <0x30000000>;
+				iova-size = <0x10000000>;
+				reg_name = "mmu_interrupt_reg","mmu_reg";
+				status = "disabled";
+				#iommu-cells = <0>;
+			};
+
+			ipa_intc: ipa@20e03000 {
+				compatible = "sprd,ud710-ipa-intc";
+				reg = <0 0x20e03000 0 0x1000>;
+				interrupt-controller;
+				interrupts = <GIC_SPI 146 IRQ_TYPE_LEVEL_HIGH>;
+				#interrupt-cells = <1>;
+				syscon-names =  "ipa_intc_eb";
+				syscons = <&ipa_ahb_regs REG_IPA_AHB_IPA_EB
+					   MASK_IPA_AHB_INTC_EB>;
+			};
+
+			usb3: usb3@20f00000 {
+				compatible = "sprd,roc1-dwc3";
+				reg = <0 0x20f00000 0 0x100000>;
+				status = "disabled";
+				#address-cells = <2>;
+				#size-cells = <2>;
+				ranges;
+
+				clocks = <&ipa_gate CLK_IPA_USB_EB>,
+					<&ipa_gate CLK_IPA_USB_SUSPEND_EB>,
+					<&ipa_gate CLK_IPA_USB_REF_EB>,
+					<&ipa_clk CLK_USB_REF>,
+					<&g12_pll CLK_TWPLL_24M>,
+					<&ext_32k>;
+				clock-names = "core_clk", "ref_clk", "susp_clk",
+					"ipa_usb_ref", "ipa_usb_ref_source",
+					"ipa_usb_ref_default";
+				usb-phy = <&ssphy>, <&ssphy>;
+				power-domains = <&pd_ipa_sys>;
+
+				dwc3@20f00000 {
+					compatible = "snps,dwc3";
+					reg = <0 0x20f00000 0 0x100000>;
+					interrupts = <GIC_SPI 135 IRQ_TYPE_LEVEL_HIGH>;
+					interrupt-names = "irq";
+					usb-phy = <&ssphy>, <&ssphy>;
+					usb-pam = <&pamu3>;
+					phy_type = "utmi_wide";
+					snps,usb3-u1u2-disable;
+					snps,dis_u3_susphy_quirk;
+					snps,dis_u2_susphy_quirk;
+					snps,overlap_check_quirk;
+					snps,ep_out_aligned_size_quirk;
+					snps,disconnect_event_quirk;
+					snps,usb3_slow_suspend;
+					snps,host_suspend_capable;
+					snps,dis-del-phy-power-chg-quirk;
+				};
+			};
+
+			pamu3: pamu3@21100000 {
+				compatible = "sprd,roc1-pamu3";
+				clocks = <&ipa_gate CLK_PAM_USB_EB>;
+				clock-names = "pamu3_clk";
+				reg = <0 0x21100000 0 0x10000>,
+				      <0 0x20f00000 0 0x100000>;
+				reg-names = "pamu3_glb_regs",
+					    "dwc3_core_regs";
+				syscons = <&ipa_ahb_regs
+					REG_IPA_AHB_IPA_RST
+					MASK_IPA_AHB_PAM_U3_SOFT_RST>;
+				syscon-names = "reset";
+			};
+
+			ssphy: ssphy@323bc000 {
+				compatible = "sprd,roc1-ssphy";
+				reg = <0 0x323bc000 0 0x4000>;
+				reg-names = "phy_glb_regs";
+				sprd,syscon-aon_apb = <&aon_apb_regs>;
+				sprd,syscon-ipa-ahb = <&ipa_ahb_regs>;
+				sprd,syscon-anag3 = <&anlg_phy_g3_regs>;
+				sprd,syscon-pmu-apb = <&pmu_apb_regs>;
+				sprd,syscon-anatop = <&anlg_phy_top_regs>;
+				sprd,syscon-anatop1 = <&anlg_phy_top1_regs>;
+				sprd,vdd-voltage = <3300000>;
+				status = "disabled";
+			};
+
+			iommu_ai: iommu@6fe00000 {
+				compatible = "sprd,iommuexroc1-ai";
+				reg = <0 0x6fe00000 0 0x800>,
+				      <0 0x6fd08004 0 0x80>;
+				iova-base = <0x30000000>;
+				iova-size = <0x80000000>;
+				reg_name = "mmu_interrupt_reg","mmu_reg";
+				status = "disabled";
+				#iommu-cells = <0>;
+			};
+
+			dsi: dsi@20400000 {
+				compatible = "sprd,roc1-dsi-host";
+				reg = <0 0x20400000 0 0x1000>;
+				interrupts = <GIC_SPI 30 IRQ_TYPE_LEVEL_HIGH>,
+					<GIC_SPI 31 IRQ_TYPE_LEVEL_HIGH>;
+				status = "disabled";
+
+				syscons = <&ap_ahb_regs REG_AP_AHB_AHB_RST
+					MASK_AP_AHB_DSI_SOFT_RST>;
+				syscon-names = "reset";
+
+				sprd,ip = "sprd,dsi-ctrl", "r3p0";
+				sprd,soc = "roc1";
+
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					port@0 {
+						reg = <0>;
+						dsi_out: endpoint {
+							remote-endpoint = <&dphy_in>;
+						};
+					};
+
+					port@1 {
+						reg = <1>;
+						dsi_in: endpoint@1 {
+							remote-endpoint = <&dpu_out>;
+						};
+					};
+				};
+			};
+
+			dphy: dphy {
+				compatible = "sprd,roc1-dsi-phy";
+				#address-cells = <1>;
+				#size-cells = <0>;
+				reg = <0 0x20400000 0 0x1000>;
+				status = "disabled";
+
+				syscons = <&ap_ahb_regs
+					REG_AP_AHB_MISC_CKG_EN
+					(MASK_AP_AHB_DPHY_REF_CKG_EN |
+					MASK_AP_AHB_DPHY_CFG_CKG_EN)>,
+					<&pmu_apb_regs
+					REG_PMU_APB_ANALOG_PHY_PD_CFG
+					MASK_PMU_APB_DSI_PD_REG>;
+				syscon-names = "enable", "power";
+				sprd,ip = "sprd,megacores-sharkl5";
+				sprd,soc = "roc1";
+                sprd,mipi-drive-capability = <7>;
+
+				/* output port */
+				port@0 {
+					reg = <0>;
+					dphy_out: endpoint {
+						remote-endpoint = <&panel_in>;
+					};
+				};
+
+				/* input port*/
+				port@1 {
+					reg = <1>;
+					dphy_in: endpoint {
+						remote-endpoint = <&dsi_out>;
+					};
+				};
+			};
+
+			vsp: video-codec@20500000{
+				compatible = "sprd,roc1-vsp";
+				reg = <0 0x20500000 0 0xc000>;
+				interrupts = <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
+				syscons = <&ap_ahb_regs REG_AP_AHB_AHB_RST
+					(MASK_AP_AHB_VSP_SOFT_RST |
+					MASK_AP_AHB_VSP_GLOBAL_SOFT_RST)>,
+					<&pmu_apb_regs
+					REG_PMU_APB_PD_AP_VSP_CFG
+					MASK_PMU_APB_PD_AP_VSP_FORCE_SHUTDOWN>,
+					<&pmu_apb_regs
+					REG_PMU_APB_PD_AP_VSP_CFG
+					MASK_PMU_APB_PD_AP_VSP_AUTO_SHUTDOWN_EN>
+					,
+					<&pmu_apb_regs
+					REG_PMU_APB_PWR_STATUS1_DBG
+					MASK_PMU_APB_PD_AP_VSP_STATE>,
+					<&aon_apb_regs
+					REG_AON_APB_APB_EB1
+					MASK_AON_APB_AP_SYST_EB>;
+				syscon-names = "reset",
+					"pmu_vsp_force_shutdown",
+					"pmu_vsp_auto_shutdown",
+					"pmu_pwr_status",
+					"vsp_domain_eb";
+				iommus = <&iommu_vsp>;
+				sprd,qos = <&vsp_qos>;
+				status = "disabled";
+			};
+
+			iommu_vsp: iommu@20500000 {
+				compatible = "sprd,iommuexroc1-vsp";
+				reg = <0 0x20501000 0 0xb000>,
+				      <0 0x20500000 0 0x80>;
+				iova-base = <0x40000000>;
+				iova-size = <0x10000000>;
+				reg_name = "mmu_interrupt_reg","mmu_reg";
+				status = "disabled";
+				#iommu-cells = <0>;
+			};
+
+			pcie1: pcie@20d00000 {
+				compatible = "sprd,pcie", "snps,dw-pcie";
+				reg = <0x0 0x20d00000 0x0 0x100000>,
+				      <0x3 0xf7f00000 0x0 0x100000>;
+				reg-names = "dbi", "config";
+				#address-cells = <3>;
+				#size-cells = <2>;
+				device_type = "pci";
+				ranges = <0x01000000 0x0 0x00000000 0x3 0xf7ef0000 0x0 0x00010000
+					  0x03000000 0x0 0x10000000 0x2 0x80000000 0x0 0x80000000>;
+				bus-range = <16 31>;
+				num-lanes = <1>;
+				num-vectors = <256>;
+				num-viewport = <8>;
+				pcie-wakeup-gpios = <&eic_async 11
+						     GPIO_ACTIVE_HIGH>;
+				status = "disabled";
+				power-domains = <&pd_ipa_sys>;
+
+				dummy@0 {
+					label = "msi_int";
+					interrupt-parent = <&gic>;
+					#interrupt-cells = <3>;
+					interrupts = <GIC_SPI 153
+						      IRQ_TYPE_LEVEL_HIGH>;
+				};
+				dummy@1 {
+					label = "aer_int";
+					interrupt-parent = <&gic>;
+					#interrupt-cells = <3>;
+					interrupts = <GIC_SPI 154
+						      IRQ_TYPE_LEVEL_HIGH>;
+				};
+				dummy@2 {
+					label = "ipa_int";
+					interrupt-parent = <&ipa_intc>;
+					#interrupt-cells = <1>;
+					interrupts = <20>;
+				};
+			};
+
+			pcie0: pcie@20c00000 {
+				compatible = "sprd,pcie", "snps,dw-pcie";
+				reg = <0x0 0x20c00000 0x0 0x100000>,
+				      <0x3 0xffffe000 0x0 0x2000>;
+				reg-names = "dbi", "config";
+				#address-cells = <3>;
+				#size-cells = <2>;
+				device_type = "pci";
+				ranges = <0x01000000 0x0 0x00000000 0x3 0xfffee000 0x0 0x00010000
+					  0x03000000 0x0 0x10000000 0x3 0xf8000000 0x0 0x07fee000>;
+				bus-range = <0 15>;
+				num-lanes = <1>;
+				num-vectors = <256>;
+				num-viewport = <8>;
+				pcie-wakeup-gpios = <&eic_async 10
+						     GPIO_ACTIVE_HIGH>;
+				status = "disabled";
+				power-domains = <&pd_ipa_sys>;
+
+				dummy@0 {
+					label = "msi_int";
+					interrupt-parent = <&gic>;
+					#interrupt-cells = <3>;
+					interrupts = <GIC_SPI 148
+						      IRQ_TYPE_LEVEL_HIGH>;
+				};
+				dummy@1 {
+					label = "aer_int";
+					interrupt-parent = <&gic>;
+					#interrupt-cells = <3>;
+					interrupts = <GIC_SPI 149
+						      IRQ_TYPE_LEVEL_HIGH>;
+				};
+				dummy@2 {
+					label = "ipa_int";
+					interrupt-parent = <&ipa_intc>;
+					#interrupt-cells = <1>;
+					interrupts = <11>;
+				};
+			};
+		};
+

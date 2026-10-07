@@ -1850,9 +1850,6 @@ static int sdhci_sprd_probe(struct platform_device *pdev)
 	int ret = 0;
 	struct device_node *node = pdev->dev.of_node;
 
-	/* TEMP diagnostics: the probe has silent failure paths; log them. */
-	dev_info(&pdev->dev, "sdhci_sprd_probe enter\n");
-
 	host = sdhci_pltfm_init(pdev, &sdhci_sprd_pdata, sizeof(*sprd_host));
 	if (IS_ERR(host))
 		return PTR_ERR(host);
@@ -1876,10 +1873,8 @@ static int sdhci_sprd_probe(struct platform_device *pdev)
 		MMC_CAP_WAIT_WHILE_BUSY;
 
 	ret = mmc_of_parse(host->mmc);
-	if (ret) {
-		dev_info(&pdev->dev, "TEMP diag: mmc_of_parse ret=%d\n", ret);
+	if (ret)
 		goto pltfm_free;
-	}
 
 	if (!mmc_card_is_removable(host->mmc))
 		host->mmc_host_ops.request_atomic = sdhci_sprd_request_atomic;
@@ -1927,7 +1922,6 @@ static int sdhci_sprd_probe(struct platform_device *pdev)
 	clk = devm_clk_get(&pdev->dev, "sdio");
 	if (IS_ERR(clk)) {
 		ret = PTR_ERR(clk);
-		dev_info(&pdev->dev, "TEMP diag: clk sdio err=%d\n", ret);
 		goto pltfm_free;
 	}
 	sprd_host->clk_sdio = clk;
@@ -1965,7 +1959,6 @@ static int sdhci_sprd_probe(struct platform_device *pdev)
 	clk = devm_clk_get(&pdev->dev, "enable");
 	if (IS_ERR(clk)) {
 		ret = PTR_ERR(clk);
-		dev_info(&pdev->dev, "TEMP diag: clk enable err=%d\n", ret);
 		goto pltfm_free;
 	}
 	sprd_host->clk_enable = clk;
@@ -1979,28 +1972,20 @@ static int sdhci_sprd_probe(struct platform_device *pdev)
 		sprd_host->clk_2x_enable = clk;
 
 	ret = clk_prepare_enable(sprd_host->clk_sdio);
-	if (ret) {
-		dev_info(&pdev->dev, "TEMP diag: prep_en clk_sdio ret=%d\n", ret);
+	if (ret)
 		goto pltfm_free;
-	}
 
 	ret = clk_prepare_enable(sprd_host->clk_enable);
-	if (ret) {
-		dev_info(&pdev->dev, "TEMP diag: prep_en clk_enable ret=%d\n", ret);
+	if (ret)
 		goto clk_sdio_disable;
-	}
 
 	ret = clk_prepare_enable(sprd_host->clk_1x_enable);
-	if (ret) {
-		dev_info(&pdev->dev, "TEMP diag: prep_en clk_1x ret=%d\n", ret);
+	if (ret)
 		goto clk_disable;
-	}
 
 	ret = clk_prepare_enable(sprd_host->clk_2x_enable);
-	if (ret) {
-		dev_info(&pdev->dev, "TEMP diag: prep_en clk_2x ret=%d\n", ret);
+	if (ret)
 		goto clk_1x_disable;
-	}
 
 #ifdef CONFIG_SPRD_DEBUG
 	sprd_host->timestamp[2] = sched_clock();

@@ -2,6 +2,7 @@
  * SPRD SoC VBC -- SpreadTrum SOC for VBC DAI function.
  *
  * Copyright (C) 2015 SpreadTrum Ltd.
+ * Copyright (C) 2026 Evarentha
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -833,7 +834,7 @@ static void fill_dsp_startup_data(struct vbc_codec_priv *vbc_codec,
 	info->stream = stream;
 	para->dac_id = get_startup_scene_dac_id(scene_id);
 
-#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+#ifdef CONFIG_MITOCHODRIA_VBC_LEGACY_ABI
 	/* Factory boot/kernel dsp_startup stores this selector verbatim.
 	 * Its debug print shifts by 8, but the transmitted field does not.
 	 */
@@ -960,7 +961,7 @@ static void fill_dsp_startup_data(struct vbc_codec_priv *vbc_codec,
 		stream, vbc_codec);
 	para->ivs_smtpa.iv_adc_id = get_ivsense_adc_id();
 	/* voice capture type: 1-downlink, 2-uplink, 3-mix down/up link */
-#ifndef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+#ifndef CONFIG_MITOCHODRIA_VBC_LEGACY_ABI
 	para->voice_record_type = vbc_codec->voice_capture_type + 1;
 #endif
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2020 Unisoc Inc.
+ * Copyright (C) 2026 Evarentha
  */
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -15,6 +16,7 @@
 #include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/regmap.h>
+#include <linux/mfd/syscon.h>
 
 #include "../governor.h"
 #include "sprd_dvfs_apsys.h"
@@ -140,6 +142,8 @@ static ssize_t top_cur_volt_show(struct device *dev,
 		cur_volt = -EINVAL;
 	}
 
+	if (cur_volt < 0)
+		return cur_volt;
 	if (cur_volt == 0)
 		ret = sprintf(buf, "0.7v\n");
 	else if (cur_volt == 1)
@@ -366,8 +370,14 @@ static int apsys_dvfs_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
-	base = ioremap(r.start, resource_size(&r));
-	if (IS_ERR(base)) {
+	if (!strcmp("roc1", pdata->version)) {
+		apsys->top_regmap = syscon_regmap_lookup_by_phandle(np,
+						"sprd,top-dvfs-syscon");
+		if (IS_ERR(apsys->top_regmap))
+			return PTR_ERR(apsys->top_regmap);
+	}
+	base = devm_ioremap(dev, r.start, resource_size(&r));
+	if (!base) {
 		pr_err("ioremap apsys dvfs address failed\n");
 		return -EFAULT;
 	}

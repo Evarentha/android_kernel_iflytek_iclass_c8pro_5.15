@@ -71,7 +71,7 @@ void on_post_fs_data(void)
 	pr_info("ksud %s\n", ksu_ksud_present ? "present" : "not installed");
 	// sanity check, this may influence the performance
 	ksu_stop_input_hook_runtime();
-	if (!IS_ENABLED(CONFIG_KSU_C8PRO_DIAGNOSTIC))
+	if (!IS_ENABLED(CONFIG_KSU_MITOCHODRIA_COMPAT))
 		ksu_selinux_hide_handle_post_fs_data();
 }
 
@@ -109,6 +109,6 @@ void on_boot_completed(void)
 {
     ksu_boot_completed = true;
     pr_info("on_boot_completed!\n");
-    track_throne(!IS_ENABLED(CONFIG_KSU_C8PRO_DIAGNOSTIC));
+    track_throne(!IS_ENABLED(CONFIG_KSU_MITOCHODRIA_COMPAT));
     ksu_avc_spoof_late_init();
 }

@@ -1,0 +1,86 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+	firmware {
+
+		android {
+			compatible = "android,firmware";
+
+			fstab {
+				compatible = "android,fstab";
+
+				fs_vendor: vendor {
+					compatible = "android,vendor";
+					dev = "/dev/block/platform/soc/soc:ap-apb/71400000.sdio/by-name/vendor";
+					type = "ext4";
+					mnt_flags = "ro,barrier=1";
+					fsmgr_flags = "wait";
+					phandle = <0x1c0>;
+				};
+
+				fs_product: product {
+					compatible = "android,product";
+					dev = "/dev/block/platform/soc/soc:ap-apb/71400000.sdio/by-name/product";
+					type = "ext4";
+					mnt_flags = "ro,barrier=1";
+					fsmgr_flags = "wait";
+					phandle = <0x1c1>;
+				};
+			};
+		};
+	};
+
+	display-subsystem {
+		compatible = "sprd,display-subsystem";
+		ports = <0x106>;
+		gsp = <0x107>;
+	};
+
+	dpu_dvfs: dpu-dvfs {
+		compatible = "sprd,hwdvfs-dpu-roc1";
+		sprd,hw-dfs-en = <0x01>;
+		sprd,work-index-def = <0x04>;
+		sprd,idle-index-def = <0x02>;
+		sprd,freq-upd-delay-en = <0x00>;
+		sprd,freq-upd-hdsk-en = <0x01>;
+		operating-points = <0x25800 0xaae60 0x2ee00 0xaae60 0x3e800 0xaae60 0x4b000 0xaae60 0x5dc00 0xb71b0>;
+		phandle = <0x1c2>;
+	};
+
+	vdsp_dvfs: vdsp-dvfs {
+		compatible = "sprd,hwdvfs-vdsp-roc1";
+		sprd,hw-dvfs-en = <0x00>;
+		sprd,work-index-def = <0x05>;
+		sprd,idle-index-def = <0x01>;
+		sprd,freq-upd-delay-en = <0x00>;
+		sprd,freq-upd-hdsk-en = <0x01>;
+		operating-points = <0x2ee00 0xaae60 0x4b000 0xaae60 0x72420 0xb71b0 0x96000 0xc3500 0xab630 0xc3500 0xbb800 0xc3500>;
+		phandle = <0x1c3>;
+	};
+
+	vsp_dvfs: vsp-dvfs {
+		compatible = "sprd,hwdvfs-vsp-roc1";
+		sprd,dvfs-work-freq = <0x16e36000>;
+		sprd,dvfs-idle-freq = <0xf424000>;
+		sprd,dvfs-enable-flag = <0x01>;
+		sprd,freq-upd-delay-en = <0x00>;
+		sprd,freq-upd-hdsk-en = <0x01>;
+		operating-points = <0x3e800 0xaae60 0x4b000 0xaae60 0x5dc00 0xb71b0 0x7d000 0xc3500>;
+		phandle = <0x1c4>;
+	};
+
+	sprd-sensorhub {
+		compatible = "sprd,roc1-sensorhub";
+		sprd,iio-name = "SPRDSensor";
+	};
+
+	cm4-loader@800000 {
+		compatible = "sprd,roc1-cm4-loader";
+		reg = <0 0x800000 0 0x40000>;
+		sprd,calibration-offset = <0x3b000>;
+		sprd,reset-syscon = <&aon_apb_regs>;
+		sprd,reset-control = <0x8c 0x1>;
+	};
+

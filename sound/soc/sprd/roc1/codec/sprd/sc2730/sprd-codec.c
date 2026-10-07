@@ -4,6 +4,7 @@
  * SPRD-CODEC -- SpreadTrum Tiger intergrated codec.
  *
  * Copyright (C) 2015 SpreadTrum Ltd.
+ * Copyright (C) 2026 Evarentha
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -784,7 +785,7 @@ static void load_ocp_pfw_cfg(struct sprd_codec_priv *sprd_codec)
 	}
 }
 
-#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+#ifdef CONFIG_MITOCHODRIA_VBC_LEGACY_ABI
 static int dmic_clk_event(struct snd_soc_dapm_widget *w, int event,
 			  unsigned int shift, unsigned int mask)
 {
@@ -805,7 +806,6 @@ static int dmic_clk_event(struct snd_soc_dapm_widget *w, int event,
 	}
 	ret = snd_soc_component_update_bits(codec, SOC_REG(AUD_DMIC_CTL),
 					    mask << shift, mode << shift);
-	pr_info("C8AUDIO %s clock mode=%u ret=%d\n", w->name, mode, ret);
 	return ret < 0 ? ret : 0;
 }
 
@@ -2662,7 +2662,7 @@ static const struct snd_soc_dapm_widget sprd_codec_dapm_widgets[] = {
 	SND_SOC_DAPM_INPUT("DMIC1 Pin"),
 
 	/* add DMIC */
-#ifdef CONFIG_SND_SOC_SPRD_VBC_C8PRO_FACTORY_ABI
+#ifdef CONFIG_MITOCHODRIA_VBC_LEGACY_ABI
 	SND_SOC_DAPM_PGA_S("DMIC Switch", 3, SOC_REG(AUD_DMIC_CTL),
 		ADC_DMIC_EN, 0, dmic0_clk_event,
 		SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),

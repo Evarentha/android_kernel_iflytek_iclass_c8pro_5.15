@@ -258,29 +258,6 @@ RGXLoadFirmware(PVRSRV_DEVICE_NODE *psDeviceNode, const IMG_CHAR *pszBVNCString)
 		return NULL;
 	}
 
-	pr_info("PVR FW %s: bytes=%zu head=%*ph\n", pszBVNCString,
-		psFW->size, (int)min_t(size_t, psFW->size, 16), psFW->data);
-	if (psFW->size >= 4096) {
-		size_t off, first = psFW->size > 65536 ? psFW->size - 65536 : 0;
-		unsigned int found = 0;
-
-		pr_info("PVR FW tail-4K offset=%zu bytes=%*ph\n",
-			psFW->size - 4096, 48, psFW->data + psFW->size - 4096);
-		/* Diagnostic only: locate possible metadata without changing payload. */
-		for (off = first; off <= psFW->size - 32 && found < 4; off++) {
-			u32 words[4];
-
-			memcpy(words, psFW->data + off, sizeof(words));
-			if (words[0] >= 1 && words[0] <= 4 &&
-			    words[1] >= 32 && words[1] <= 256 &&
-			    words[2] >= 1 && words[2] <= 8 && words[3] == 24) {
-				pr_info("PVR FW candidate offset=%zu distance=%zu bytes=%*ph\n",
-					off, psFW->size - off, 32, psFW->data + off);
-				found++;
-			}
-		}
-	}
-
 	if (!VerifyFirmware(psFW))
 	{
 		release_firmware(psFW);

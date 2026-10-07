@@ -2,6 +2,7 @@
 @File
 @Title          Services Firmware image utilities used at init time
 @Copyright      Copyright (c) Imagination Technologies Ltd. All Rights Reserved
+@Copyright      Copyright (C) 2026 Evarentha
 @Description    Services Firmware image utilities used at init time
 @License        Dual MIT/GPLv2
 

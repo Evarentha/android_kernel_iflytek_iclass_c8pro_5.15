@@ -4,6 +4,7 @@
  * SPRD SoC AUDIO -- SpreadTrum SOC SIPC for AUDIO Common function.
  *
  * Copyright (C) 2015 SpreadTrum Ltd.
+ * Copyright (C) 2026 Evarentha
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and

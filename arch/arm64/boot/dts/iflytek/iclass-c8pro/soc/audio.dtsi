@@ -1,0 +1,73 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+		agcp {
+			compatible = "simple-bus";
+			#address-cells = <0x02>;
+			#size-cells = <0x02>;
+			ranges;
+
+			vbc_v4: vbc@33480000 {
+				compatible = "sprd,roc1-vbc";
+				#sound-dai-cells = <0x01>;
+				reg = <0x00 0x33480000 0x00 0x1000>;
+				sprd,syscon-agcp-ahb = <0xa2>;
+				sprd,vbc-phy-offset = <0x32000000>;
+				pinctrl-names = "vbc_iis3_0", "vbc_iism0_0", "vbc_iis_to_pad", "vbc_iis_to_aon_usb", "vbc_iism0_1", "vbc_iism0_3", "vbc_iis0_3", "vbc_iis1_3", "vbc_iis2_3", "vbc_iis3_3", "ap_iis0_3";
+				pinctrl-0 = <0xa3>;
+				pinctrl-1 = <0xa4>;
+				pinctrl-2 = <0xa5>;
+				pinctrl-3 = <0xa6>;
+				pinctrl-4 = <0xa7>;
+				pinctrl-5 = <0xa8>;
+				pinctrl-6 = <0xa9>;
+				pinctrl-7 = <0xaa>;
+				pinctrl-8 = <0xab>;
+				pinctrl-9 = <0xac>;
+				pinctrl-10 = <0xad>;
+				phandle = <0x11e>;
+			};
+
+			mcdt@33490000 {
+				compatible = "sprd,roc1-mcdt";
+				reg = <0x00 0x33490000 0x00 0x170>;
+				interrupts = <0x00 0xb6 0x04>;
+				sprd,ap-addr-offset = <0x32000000>;
+				sprd,syscon-agcp-ahb = <0xa2>;
+			};
+
+			agcp_dma: dma-controller@33580000 {
+				compatible = "sprd,roc1-dma";
+				reg = <0x00 0x33580000 0x00 0x4000>;
+				interrupts = <0x00 0xb4 0x04>;
+				#dma-cells = <0x01>;
+				#dma-channels = <0x20>;
+				clock-names = "enable", "ashb_eb";
+				clocks = <0xae 0x06 0xae 0x0d>;
+				phandle = <0xdc>;
+			};
+
+			sprd_audio_codec_dig: audio-codec@33750000 {
+				compatible = "sprd,audio-codec-dig-agcp";
+				reg = <0x00 0x33750000 0x00 0x1000>;
+				sprd,syscon-agcp-ahb = <0xa2>;
+				phandle = <0x8b>;
+			};
+
+			agdsp-access {
+				compatible = "sprd,agdsp-access";
+				sprd,syscon-agcp-ahb = <0x10>;
+				sprd,syscon-pmu-apb = <0x02>;
+				syscons = <0x02 0xcc 0x20 0x02 0xd4 0xf000 0x02 0x58c 0xff 0x02 0x58c 0xff00 0x10 0x14c 0x20>;
+				syscon-names = "audcp_pmu_sleep_ctrl", "audcp_pmu_slp_status", "audcp_pmu_pwr_status4", "audcp_pmu_pwr_status3", "ap_access_ena";
+				sprd,dst = <0x05>;
+				sprd,channel = <0x82>;
+				sprd,sipc-name = "sipc0";
+				sprd,ddr-addr-offset = <0x00>;
+				hwlocks = <0x53 0x0b>;
+				sprd,auto_agcp_access = <0x00>;
+			};
+		};
+

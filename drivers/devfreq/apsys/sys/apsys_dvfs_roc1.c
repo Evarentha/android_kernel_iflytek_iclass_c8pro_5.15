@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2020 Unisoc Inc.
+ * Copyright (C) 2026 Evarentha
  */
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -10,6 +11,7 @@
 #include <linux/of_address.h>
 #include <linux/of_device.h>
 #include <linux/slab.h>
+#include <linux/regmap.h>
 
 #include "sprd_dvfs_apsys.h"
 #include "apsys_dvfs_roc1.h"
@@ -124,24 +126,14 @@ static void apsys_dvfs_min_volt(struct apsys_dev *apsys, u32 min_volt)
 	reg->ap_min_voltage_cfg = min_volt;
 }
 
-static void apsys_top_dvfs_init(struct apsys_dev *apsys)
-{
-	void __iomem *base;
-
-	pr_info("%s()\n", __func__);
-
-	base = ioremap(0x322a0000, 0x150);
-	if (IS_ERR(base))
-		pr_err("ioremap top dvfs address failed\n");
-
-	apsys->top_base = (unsigned long)base;
-}
-
 static int dcdc_modem_cur_volt(struct apsys_dev *apsys)
 {
-	volatile u32 rw32;
+	u32 rw32;
+	int ret;
 
-	rw32 = *(volatile u32 *)(apsys->top_base + 0x0050);
+	ret = regmap_read(apsys->top_regmap, 0x50, &rw32);
+	if (ret)
+		return ret;
 
 	return (rw32 >> 20) & 0x07;
 }
@@ -197,6 +189,5 @@ const struct apsys_dvfs_ops roc1_apsys_dvfs_ops = {
 	.apsys_hold_en = apsys_dvfs_hold_en,
 	.apsys_wait_window = apsys_dvfs_wait_window,
 	.apsys_min_volt = apsys_dvfs_min_volt,
-	.top_dvfs_init = apsys_top_dvfs_init,
 	.top_cur_volt = dcdc_modem_cur_volt,
 };

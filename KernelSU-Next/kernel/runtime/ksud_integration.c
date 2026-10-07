@@ -267,7 +267,7 @@ static bool check_argv(struct user_arg_ptr argv, int index,
 
 static void ksu_initialize_selinux_tw_func(struct callback_head *cb)
 {
-	if (!IS_ENABLED(CONFIG_KSU_C8PRO_DIAGNOSTIC))
+	if (!IS_ENABLED(CONFIG_KSU_MITOCHODRIA_COMPAT))
 		ksu_selinux_hide_handle_second_stage();
 	apply_kernelsu_rules();
 	cache_sid();

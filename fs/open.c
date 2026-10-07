@@ -1247,11 +1247,6 @@ static long do_sys_openat2(int dfd, const char __user *filename,
 			fd_install(fd, f);
 		}
 	}
-	if (IS_ENABLED(CONFIG_MITOCHODRIA_C8PRO_USER_DIAG) && fd < 0 &&
-	    (!strcmp(current->comm, "surfaceflinger") ||
-	     !strcmp(current->group_leader->comm, "surfaceflinger")))
-		pr_info_ratelimited("C8DIAG open comm=%s pid=%d path=%s ret=%d\n",
-				    current->comm, task_pid_nr(current), tmp->name, fd);
 	putname(tmp);
 	return fd;
 }

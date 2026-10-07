@@ -1,0 +1,99 @@
+/*
+ * Spreadtrum Roc1 platform DTS file
+ *
+ * Copyright (C) 2018, Spreadtrum Communications Inc.
+ *
+ * This file is licensed under a dual GPLv2 or X11 license.
+ */
+
+		agcp {
+			compatible = "simple-bus";
+			#address-cells = <2>;
+			#size-cells = <2>;
+			ranges;
+
+			vbc_v4: vbc@33480000 {
+				compatible = "sprd,roc1-vbc";
+				#sound-dai-cells = <1>;
+				reg = <0 0x33480000 0 0x1000>;
+				sprd,syscon-agcp-ahb = <&audcp_ahb_regs>;
+				sprd,vbc-phy-offset = <0x32000000>;
+				/* iis pin map */
+				pinctrl-names =
+				/* iis interface 0 */
+				"vbc_iis3_0", "vbc_iism0_0",
+				"vbc_iis_to_pad", "vbc_iis_to_aon_usb", "vbc_iism0_1", "vbc_iism0_3",
+				"vbc_iis0_3", "vbc_iis1_3", "vbc_iis2_3", "vbc_iis3_3", "ap_iis0_3",
+				"vbc_iis0_1", "vbc_iis1_1", "vbc_iis2_1", "vbc_iis3_1", "ap_iis0_1";
+				pinctrl-0 = <&vbc_iis3_0>;
+				pinctrl-1 = <&vbc_iism0_0>;
+				pinctrl-2 = <&vbc_iis_to_pad>;
+				pinctrl-3 = <&vbc_iis_to_aon_usb>;
+				pinctrl-4 = <&vbc_iism0_1>;
+				pinctrl-5 = <&vbc_iism0_3>;
+				pinctrl-6 = <&vbc_iis0_3>;
+				pinctrl-7 = <&vbc_iis1_3>;
+				pinctrl-8 = <&vbc_iis2_3>;
+				pinctrl-9 = <&vbc_iis3_3>;
+				pinctrl-10 = <&ap_iis0_3>;
+				pinctrl-11 = <&vbc_iis0_1>;
+				pinctrl-12 = <&vbc_iis1_1>;
+				pinctrl-13 = <&vbc_iis2_1>;
+				pinctrl-14 = <&vbc_iis3_1>;
+				pinctrl-15 = <&ap_iis0_1>;
+			};
+
+			mcdt@33490000{
+				compatible = "sprd,roc1-mcdt";
+				reg = <0 0x33490000 0 0x170>;
+				interrupts = <GIC_SPI 182 IRQ_TYPE_LEVEL_HIGH>;
+				sprd,ap-addr-offset = <0x32000000>;
+				sprd,syscon-agcp-ahb = <&audcp_ahb_regs>;
+			};
+
+			agcp_dma: dma-controller@33580000 {
+				compatible = "sprd,roc1-dma";
+				reg = <0 0x33580000 0 0x4000>;
+				interrupts = <GIC_SPI 180 IRQ_TYPE_LEVEL_HIGH>;
+				#dma-cells = <1>;
+				#dma-channels = <32>;
+				clock-names = "enable", "ashb_eb";
+				clocks = <&audcpahb_gate CLK_AUDCP_DMA_AP_EB>,
+					<&audcpahb_gate CLK_AUDCP_DMA_AP_ASHB_EB>;
+			};
+
+			sprd_audio_codec_dig: audio-codec@33750000 {
+				compatible = "sprd,audio-codec-dig-agcp";
+				reg = <0 0x33750000 0 0x1000>;
+				sprd,syscon-agcp-ahb = <&audcp_ahb_regs>;
+			};
+
+			agdsp-access {
+				compatible = "sprd,agdsp-access";
+				sprd,syscon-agcp-ahb = <&aon_apb_regs>;
+				sprd,syscon-pmu-apb = <&pmu_apb_regs>;
+				syscons = <&pmu_apb_regs REG_PMU_APB_SLEEP_CTRL
+							MASK_PMU_APB_AUDCP_DEEP_SLEEP>,
+							<&pmu_apb_regs REG_PMU_APB_SLEEP_STATUS
+							MASK_PMU_APB_AUDCP_SLP_STATUS>,
+							<&pmu_apb_regs REG_PMU_APB_PWR_STATUS3_DBG
+							MASK_PMU_APB_PD_AUDCP_SYS_STATE>,
+							<&pmu_apb_regs REG_PMU_APB_PWR_STATUS3_DBG
+							MASK_PMU_APB_PD_AUDCP_AUDDSP_STATE>,
+							<&aon_apb_regs REG_AON_APB_AUDCP_CTRL
+							MASK_AON_APB_AP_2_AUD_ACCESS_EN>;
+				syscon-names = "audcp_pmu_sleep_ctrl",
+								"audcp_pmu_slp_status",
+								"audcp_pmu_pwr_status4",
+								"audcp_pmu_pwr_status3",
+								"ap_access_ena";
+				sprd,dst = <5>;
+				sprd,channel = <130>;
+				sprd,sipc-name = "sipc0";
+				sprd,mailbox-core = <5>; /* AGDSP id */
+				sprd,ddr-addr-offset = <0x0>;
+				hwlocks = <&hwlock 11>;
+				sprd,auto_agcp_access = <0>;
+			};
+		};
+
