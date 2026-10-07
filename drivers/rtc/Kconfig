@@ -1254,6 +1254,48 @@ config RTC_DRV_SC27XX
 	  This driver can also be built as a module. If so, the module
 	  will be called rtc-sc27xx.
 
+if RTC_DRV_SC27XX
+
+config MITOCHODRIA_RTC_FIX_BASELINE
+	bool "Mitochodria: seed RTC baseline and disarm alarms at shutdown"
+	help
+	  On a full power cycle the SC2730 RTC domain loses its valid flag and
+	  the counter restarts near zero, breaking alarmtimer scheduling and
+	  poweroff. Seed a modern epoch on invalid probe and disarm/lock the
+	  alarm comparators at shutdown.
+
+config MITOCHODRIA_RTC_SKIP_PAST_ALARM
+	bool "Mitochodria: skip arming alarms that are already past"
+	help
+	  With a corrupted baseline, wall-clock alarm requests can map to a
+	  time that is already past, waking the AP right after suspend entry.
+	  Skip arming both hardware alarms when the requested time is not in
+	  the future.
+
+config MITOCHODRIA_RTC_WAKE_MIN_LEAD_S
+	int "Minimum seconds an alarm must be in the future to be armed"
+	range 1 3600
+	default 60
+	depends on MITOCHODRIA_RTC_SKIP_PAST_ALARM
+	help
+	  Horizon used when deciding whether an alarm is considered past.
+
+config MITOCHODRIA_RTC_NO_AUX_HW_WAKE
+	bool "Mitochodria: keep the auxiliary alarm comparator disarmed"
+	help
+	  On this SC2730 the auxiliary comparator matches the seconds field
+	  alone, so an armed aux alarm fires within a minute of arming and
+	  aborts deep sleep. Keep boottime wake events software-only.
+
+config MITOCHODRIA_RTC_MAIN_WAKE
+	bool "Mitochodria: route wake events through the normal alarm"
+	depends on MITOCHODRIA_RTC_NO_AUX_HW_WAKE
+	help
+	  Route wake events through the normal alarm comparator (full tuple
+	  honoured) instead of keeping them software-only.
+
+endif # RTC_DRV_SC27XX
+
 config RTC_DRV_SPEAR
 	tristate "SPEAR ST RTC"
 	depends on PLAT_SPEAR || COMPILE_TEST

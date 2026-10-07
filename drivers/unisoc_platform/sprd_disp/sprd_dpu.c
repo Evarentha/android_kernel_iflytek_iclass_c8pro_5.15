@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2020 Unisoc Inc.
+ * Copyright (C) 2026 Evarentha
  */
 
 #include <linux/component.h>
@@ -33,25 +34,38 @@
 static void sprd_dpu_enable(struct sprd_dpu *dpu);
 static void sprd_dpu_disable(struct sprd_dpu *dpu);
 
-static void sprd_dpu_prepare_fb(struct sprd_crtc *crtc,
+static int sprd_dpu_prepare_fb(struct sprd_crtc *crtc,
 				struct drm_plane_state *new_state)
 {
 	struct drm_gem_object *obj;
 	struct sprd_gem_obj *sprd_gem;
 	struct sprd_dpu *dpu = crtc->priv;
-	int i;
+	int i, ret;
 
 	if (!dpu->ctx.enabled) {
 		DRM_WARN("dpu has already powered off\n");
-		return;
+		return 0;
 	}
 
 	for (i = 0; i < new_state->fb->format->num_planes; i++) {
 		obj = drm_gem_fb_get_obj(new_state->fb, i);
 		sprd_gem = to_sprd_gem_obj(obj);
-		if (sprd_gem->need_iommu)
-			sprd_crtc_iommu_map(&dpu->dev, sprd_gem);
+		if (sprd_gem->need_iommu) {
+			ret = sprd_crtc_iommu_map(&dpu->dev, sprd_gem);
+			if (ret)
+				goto unmap;
+		}
 	}
+	return 0;
+
+unmap:
+	while (--i >= 0) {
+		obj = drm_gem_fb_get_obj(new_state->fb, i);
+		sprd_gem = to_sprd_gem_obj(obj);
+		if (sprd_gem->need_iommu)
+			sprd_crtc_iommu_unmap(&dpu->dev, sprd_gem);
+	}
+	return ret;
 }
 
 static unsigned long sprd_free_reserved_area(void *start, void *end, int poison, const char *s)
@@ -631,6 +645,12 @@ static const struct sprd_dpu_ops qogirn6pro_dpu = {
 };
 
 static const struct of_device_id dpu_match_table[] = {
+	{ .compatible = "sprd,roc1-dpu",
+	  .data = &(const struct sprd_dpu_ops) {
+		.core = &dpu_r3p0_core_ops,
+		.clk = &roc1_dpu_clk_ops,
+		.glb = &roc1_dpu_glb_ops,
+	  } },
 	{ .compatible = "sprd,sharkle-dpu",
 	  .data = &sharkle_dpu },
 	{ .compatible = "sprd,pike2-dpu",

@@ -2,6 +2,7 @@
  * dwc3-sprd.c - Spreadtrum DWC3 Specific Glue layer
  *
  * Copyright (c) 2018 Spreadtrum Co., Ltd.
+ * Copyright (C) 2026 Evarentha
  *		http://www.spreadtrum.com
  *
  * This program is free software: you can redistribute it and/or modify
@@ -458,6 +459,7 @@ static void adjust_dwc3_max_speed(struct dwc3_sprd *sdwc)
 		reg = sdwc_readl(dwc->regs, DWC3_DSTS);
 		spin_unlock_irqrestore(&dwc->lock, flags);
 		dev_info(dwc->dev, "set dwc3 max speed to fs in cali mode, DWC3_DSTS: 0x%x\n", reg);
+	}
 }
 
 static int dwc3_sprd_is_udc_start(struct dwc3_sprd *sdwc)
@@ -956,48 +958,40 @@ static int dwc3_sprd_audio_notifier(struct notifier_block *nb,
 
 static int dwc3_sprd_clk_probe(struct device *dev, struct dwc3_sprd *sdwc)
 {
-	int ret = 0;
+	static const char * const names[] = {
+		"ipa_dpu1_clk", "ipa_dptx_clk", "ipa_tca_clk", "ipa_usb31pll_clk",
+	};
+	struct clk **clks[] = {
+		&sdwc->ipa_dpu1_clk, &sdwc->ipa_dptx_clk,
+		&sdwc->ipa_tca_clk, &sdwc->ipa_usb31pll_clk,
+	};
+	int i, ret;
 
-	sdwc->ipa_dpu1_clk = devm_clk_get(dev, "ipa_dpu1_clk");
-	if (IS_ERR(sdwc->ipa_dpu1_clk)) {
-		dev_err(dev, "no dpu1 clk specified\n");
-		return PTR_ERR(sdwc->ipa_dpu1_clk);
-	} else {
-		ret = clk_prepare_enable(sdwc->ipa_dpu1_clk);
-		if (ret)
-			dev_err(dev, "ipa-dpu1-clock enable failed\n");
+	/* ROC1 has no DPU1/DP-TX/TCA/USB3.1 PLL clock group. */
+	if (of_device_is_compatible(dev->of_node, "sprd,roc1-dwc3"))
+		return 0;
+
+	for (i = 0; i < ARRAY_SIZE(names); i++) {
+		*clks[i] = devm_clk_get(dev, names[i]);
+		if (IS_ERR(*clks[i])) {
+			ret = PTR_ERR(*clks[i]);
+			*clks[i] = NULL;
+			goto unwind;
+		}
+		ret = clk_prepare_enable(*clks[i]);
+		if (ret) {
+			*clks[i] = NULL;
+			goto unwind;
+		}
 	}
+	return 0;
 
-	sdwc->ipa_dptx_clk = devm_clk_get(dev, "ipa_dptx_clk");
-	if (IS_ERR(sdwc->ipa_dptx_clk)) {
-		dev_err(dev, "no dptx clk specified\n");
-		return PTR_ERR(sdwc->ipa_dptx_clk);
-	} else {
-		ret = clk_prepare_enable(sdwc->ipa_dptx_clk);
-		if (ret)
-			dev_err(dev, "ipa-dptx-clock enable failed\n");
+unwind:
+	dev_err_probe(dev, ret, "Failed to enable %s\n", names[i]);
+	while (--i >= 0) {
+		clk_disable_unprepare(*clks[i]);
+		*clks[i] = NULL;
 	}
-
-	sdwc->ipa_tca_clk = devm_clk_get(dev, "ipa_tca_clk");
-	if (IS_ERR(sdwc->ipa_tca_clk)) {
-		dev_err(dev, "no tca clk specified\n");
-		return PTR_ERR(sdwc->ipa_tca_clk);
-	} else {
-		ret = clk_prepare_enable(sdwc->ipa_tca_clk);
-		if (ret)
-			dev_err(dev, "ipa-tca-clock enable failed\n");
-	}
-
-	sdwc->ipa_usb31pll_clk = devm_clk_get(dev, "ipa_usb31pll_clk");
-	if (IS_ERR(sdwc->ipa_usb31pll_clk)) {
-		dev_err(dev, "no usb31pll clk specified\n");
-		return PTR_ERR(sdwc->ipa_usb31pll_clk);
-	} else {
-		ret = clk_prepare_enable(sdwc->ipa_usb31pll_clk);
-		if (ret)
-			dev_err(dev, "ipa-usb31pll-clock enable failed\n");
-	}
-
 	return ret;
 }
 
@@ -1050,7 +1044,7 @@ static void dwc3_sprd_hotplug_sm_work(struct work_struct *work)
 	}
 
 	state = dwc3_drd_state_string(sdwc->drd_state);
-	dev_info(sdwc->dev, "%s state\n", state);
+	dev_dbg(sdwc->dev, "%s state\n", state);
 
 	/* Check OTG state */
 	switch (sdwc->drd_state) {
@@ -1095,7 +1089,7 @@ static void dwc3_sprd_hotplug_sm_work(struct work_struct *work)
 		 * setted as musb_hdrc.1.auto
 		 */
 		if (!dwc3_sprd_is_udc_start(sdwc)) {
-			dev_info(sdwc->dev, "waiting dwc3 udc start\n");
+			dev_info_once(sdwc->dev, "waiting dwc3 udc start\n");
 			rework = true;
 			delay = DWC3_UDC_START_CHECK_DELAY;
 			break;
@@ -1306,7 +1300,7 @@ static int dwc3_sprd_probe(struct platform_device *pdev)
 	dwc3_node = of_get_next_available_child(node, NULL);
 	if (!dwc3_node) {
 		dev_err(dev, "failed to find dwc3 child\n");
-		return PTR_ERR(dwc3_node);
+		return -ENODEV;
 	}
 
 	sdwc->dwc3_wq = alloc_ordered_workqueue("dwc3_wq", 0);
@@ -1327,8 +1321,9 @@ static int dwc3_sprd_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	if (dwc3_sprd_clk_probe(dev, sdwc))
-		goto err_ipa_clk;
+	ret = dwc3_sprd_clk_probe(dev, sdwc);
+	if (ret)
+		goto err_workqueues;
 
 	sdwc->hs_phy = devm_usb_get_phy_by_phandle(dev,
 			"usb-phy", 0);
@@ -1566,7 +1561,7 @@ err_core_clk:
 	clk_disable_unprepare(sdwc->core_clk);
 err_ipa_clk:
 	usb_clk_prepare_disable(sdwc);
-
+err_workqueues:
 	destroy_workqueue(sdwc->dwc3_wq);
 	destroy_workqueue(sdwc->sm_usb_wq);
 	return ret;

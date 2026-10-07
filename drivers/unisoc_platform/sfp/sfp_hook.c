@@ -26,7 +26,7 @@
 #include "sfp.h"
 #include "sfp_hash.h"
 
-extern spinlock_t mgr_lock;
+extern spinlock_t sfp_mgr_lock;
 static void sfp_conntrack_in(struct net *net, u_int8_t pf,
 			     unsigned int hooknum,
 			     struct sk_buff *skb)
@@ -64,7 +64,7 @@ static void sfp_conntrack_in(struct net *net, u_int8_t pf,
 				 entry_lst) {
 		if (sfp_ct_tuple_equal(tuple_hash, tuple)) {
 			sfp_ct = sfp_ct_tuplehash_to_ctrack(tuple_hash);
-			spin_lock_bh(&mgr_lock);
+			spin_lock_bh(&sfp_mgr_lock);
 			if (sfp_tcp_fin_chk(ct) &&
 			    sfp_ct->fin_rst_flag == 0) {
 				FP_PRT_DBG(FP_PRT_DEBUG,
@@ -84,7 +84,7 @@ static void sfp_conntrack_in(struct net *net, u_int8_t pf,
 					  jiffies + SFP_TCP_CT_WAITING);
 				sfp_ct->fin_rst_flag += SFP_RST_FLAG;
 			}
-			spin_unlock_bh(&mgr_lock);
+			spin_unlock_bh(&sfp_mgr_lock);
 			rcu_read_unlock_bh();
 			return;
 		}

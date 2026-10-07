@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2020 Unisoc Inc.
+ * Copyright (C) 2026 Evarentha
  */
 
 #include <linux/dma-buf.h>
+#include <linux/ion.h>
 #include <linux/list.h>
 #include <linux/slab.h>
 #include <linux/sprd_iommu.h>
@@ -617,6 +619,7 @@ int gsp_kcfg_iommu_map(struct gsp_kcfg *kcfg)
 	struct dma_buf *dmabuf = NULL;
 	struct gsp_layer *layer = NULL;
 	struct carveout_heap_buffer *buffer;
+	struct ion_buffer *ionbuf;
 	u32 phy_addr;
 
 	if (gsp_kcfg_verify(kcfg)) {
@@ -638,6 +641,22 @@ int gsp_kcfg_iommu_map(struct gsp_kcfg *kcfg)
 
 		if (IS_ERR_OR_NULL(dmabuf))
 			continue;
+
+		ionbuf = ion_dmabuf_to_buffer(dmabuf);
+		if (!IS_ERR(ionbuf)) {
+			phys_addr_t phys = sg_phys(ionbuf->sg_table->sgl);
+
+			if (ionbuf->heap->type != ION_HEAP_TYPE_SYSTEM &&
+			    ionbuf->sg_table->nents == 1 && phys <= U32_MAX &&
+			    ionbuf->size && ionbuf->size - 1 <= U32_MAX - phys) {
+				gsp_layer_addr_set(layer, phys);
+				continue;
+			}
+			ret = gsp_layer_iommu_map(layer, core->dev);
+			if (ret)
+				goto done;
+			continue;
+		}
 
 		if ((strcmp(dmabuf->exp_name, "system") &&
 		     strcmp(dmabuf->exp_name, "system-uncached"))) {
@@ -684,13 +703,7 @@ void gsp_kcfg_iommu_unmap(struct gsp_kcfg *kcfg)
 		if (IS_ERR_OR_NULL(dmabuf))
 			continue;
 
-		if ((strcmp(dmabuf->exp_name, "system") &&
-		     strcmp(dmabuf->exp_name, "system-uncached"))) {
-			GSP_DEBUG("layer[%d] no need to iommu unmap\n",
-				gsp_layer_to_type(layer));
-			continue;
-		}
-
-		gsp_layer_iommu_unmap(layer, core->dev);
+		if (buf->is_iova)
+			gsp_layer_iommu_unmap(layer, core->dev);
 	}
 }

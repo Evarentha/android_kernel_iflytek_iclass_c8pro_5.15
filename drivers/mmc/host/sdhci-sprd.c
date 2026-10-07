@@ -1854,7 +1854,7 @@ static int sdhci_sprd_probe(struct platform_device *pdev)
 	if (IS_ERR(host))
 		return PTR_ERR(host);
 
-	host->dma_mask = DMA_BIT_MASK(64);
+	host->dma_mask = ~(dma_addr_t)0;
 	pdev->dev.dma_mask = &host->dma_mask;
 	host->mmc_host_ops.request = sdhci_sprd_request;
 	host->mmc_host_ops.hs400_enhanced_strobe =
@@ -2178,6 +2178,7 @@ static int sdhci_sprd_remove(struct platform_device *pdev)
 static const struct of_device_id sdhci_sprd_of_match[] = {
 	{ .compatible = "sprd,sdhci-r10", },
 	{ .compatible = "sprd,sdhci-r11", },
+	{ .compatible = "sprd,sdhc-r11p1", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, sdhci_sprd_of_match);

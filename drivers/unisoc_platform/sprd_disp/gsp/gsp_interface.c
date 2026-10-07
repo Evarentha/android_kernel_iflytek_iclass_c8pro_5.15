@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2020 Unisoc Inc.
+ * Copyright (C) 2026 Evarentha
  */
 
 #include <linux/device.h>
@@ -12,6 +13,17 @@
 #include "gsp_interface.h"
 #include "gsp_interface/gsp_interface_sharkl5pro.h"
 #include "gsp_interface/gsp_interface_qogirn6pro.h"
+#include "gsp_interface/gsp_interface_roc1.h"
+
+static struct gsp_interface_ops gsp_interface_roc1_ops = {
+	.parse_dt = gsp_interface_roc1_parse_dt,
+	.init = gsp_interface_roc1_init,
+	.deinit = gsp_interface_roc1_deinit,
+	.prepare = gsp_interface_roc1_prepare,
+	.unprepare = gsp_interface_roc1_unprepare,
+	.reset = gsp_interface_roc1_reset,
+	.dump = gsp_interface_roc1_dump,
+};
 
 static struct gsp_interface_ops gsp_interface_sharkl5pro_ops = {
 	.parse_dt = gsp_interface_sharkl5pro_parse_dt,
@@ -73,7 +85,12 @@ int gsp_interface_attach(struct gsp_interface **interface, struct gsp_dev *gsp)
 	gsp_interface_copy_name(tmp, name);
 	GSP_INFO("gsp interface name: %s\n", name);
 
-	if (strcmp(GSP_SHARKL5PRO, name) == 0) {
+	if (!strcmp(name, "roc1")) {
+		*interface = kzalloc(sizeof(struct gsp_interface_roc1), GFP_KERNEL);
+		if (!*interface)
+			return -ENOMEM;
+		(*interface)->ops = &gsp_interface_roc1_ops;
+	} else if (strcmp(GSP_SHARKL5PRO, name) == 0) {
 		*interface = kzalloc(sizeof(struct gsp_interface_sharkl5pro),
 				     GFP_KERNEL);
 		if (IS_ERR_OR_NULL(*interface)) {

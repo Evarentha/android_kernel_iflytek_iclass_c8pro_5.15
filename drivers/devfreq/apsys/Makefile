@@ -37,6 +37,7 @@ apsys-dvfs-$(CONFIG_DRM_SPRD_GSP_DVFS) += \
 
 apsys-dvfs-$(CONFIG_DVFS_APSYS_VDSP) += \
 	sprd_dvfs_vdsp.o \
+	vdsp/vdsp_dvfs_roc1.o \
 	vdsp/vdsp_dvfs_sharkl5pro.o
 
 obj-$(CONFIG_DVFS_APSYS_SPRD) += apsys-dvfs.o

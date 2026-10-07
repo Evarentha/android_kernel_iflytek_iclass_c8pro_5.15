@@ -102,6 +102,16 @@ enum sprd_dma_req_mode {
  * @SPRD_DMA_CFGERR_INT: configure error interrupt when configuration is
  * incorrect.
  */
+/*
+ * 2-stage transfer interrupt types. These are kept in the public header for
+ * the users of the 2-stage channels (e.g. the audio offload paths); the values
+ * match the ones used by the sprd DMA driver itself.
+ */
+#define SPRD_DMA_SRC_CHN0_INT		9
+#define SPRD_DMA_SRC_CHN1_INT		10
+#define SPRD_DMA_DST_CHN0_INT		11
+#define SPRD_DMA_DST_CHN1_INT		12
+
 enum sprd_dma_int_type {
 	SPRD_DMA_NO_INT,
 	SPRD_DMA_FRAG_INT,

@@ -1,0 +1,65 @@
+Mitochodria ROC1 legacy Android firmware interfaces
+=================================================
+
+These bindings describe the resources and firmware ABI of the ROC1 platform.
+They do not identify an entire tablet model. Existing Android userspace ABI
+names such as the SensorHub IIO name and Bluetooth sleep files are separate.
+
+CM4 loader
+----------
+Required properties:
+- compatible: "sprd,roc1-cm4-loader"
+- reg: one CPU physical CM4 memory window. The complete window must fit in
+  the 32-bit address/size ABI exported to the Trusty userspace loader.
+- sprd,calibration-offset: byte offset dividing reg into the main PM image
+  and the calibration executable library. Must be nonzero and less than
+  the window size. Both segments must be nonempty and non-overlapping.
+- sprd,reset-syscon: phandle to the reset register syscon.
+- sprd,reset-control: two cells, the aligned register offset and nonzero mask.
+
+The memory resource must be dedicated to CM4 firmware, not Linux RAM. The
+driver does not unlock protected memory or authenticate firmware: userspace
+must perform the original Trusty unlock/load/verify sequence. The loader
+exports /proc/mitochodria_cm4/ldinfo as two records (char name[32], u32 base,
+u32 size), named pm_sys and cali_lib. This ABI is shared with the matching
+Mitochodria userspace loader; it is not a generic remoteproc boot interface.
+
+Example:
+  cm4-loader@800000 {
+    compatible = "sprd,roc1-cm4-loader";
+    reg = <0 0x800000 0 0x40000>;
+    sprd,calibration-offset = <0x3b000>;
+    sprd,reset-syscon = <&aon_apb_regs>;
+    sprd,reset-control = <0x8c 1>;
+  };
+
+ROC1 APSYS DVFS
+--------------
+Nodes with compatible "sprd,hwdvfs-apsys-roc1" additionally require:
+- sprd,top-dvfs-syscon: phandle to the ROC1 top-DVFS controller syscon.
+  The controller's modem voltage status register is at offset 0x50.
+Its physical base comes from the referenced node's reg property.
+
+ROC1 DPU CABC status
+-------------------
+Nodes with compatible "sprd,roc1-dpu" use:
+- sprd,pmu-syscon: phandle to the ROC1 PMU syscon. Required for CABC.
+  VSP power status is read at offset 0x584, mask 0x00ff0000.
+An absent/invalid reference fails the CABC request instead of accessing
+a guessed physical address. Other display operation does not require CABC.
+
+Trusty CPU power ABI
+-------------------
+The "sprd,trusty-smc-v1" node may contain:
+- sprd,cpu-can-down-status-abi: boolean. Indicates legacy firmware where
+  CPU_CAN_DOWN returns negative on denial and zero/nonnegative on success,
+  using the platform power SMC entry. Without it the existing boolean
+  permission ABI is used. Set only for firmware validated with this ABI.
+
+Broadcom UART legacy LPM control
+-------------------------------
+Required properties for "brcm,mitochodria-uart-lpm":
+- reset-gpios, device-wake-gpios, host-wake-gpios: one GPIO each, with their
+  actual board polarity. Host wake must support a wake-capable IRQ.
+The driver provides rfkill "bcm43xx" and the Android legacy
+/proc/bluetooth/sleep/{lpm,btwrite} interface. GPIO numbers are not built in.

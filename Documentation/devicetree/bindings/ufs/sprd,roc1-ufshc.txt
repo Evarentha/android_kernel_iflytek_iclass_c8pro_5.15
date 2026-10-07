@@ -1,0 +1,23 @@
+Spreadtrum ROC1 UFS host controller
+=================================
+
+Copyright (C) 2026 Evarentha
+SPDX-License-Identifier: GPL-2.0-only
+
+The ROC1 controller uses the original UD710 UTP/UniPro/MPHY reset sequence.
+It is distinct from the newer UMS9620/UMS9621/UMS9230 controllers.
+
+Required properties:
+- compatible: "sprd,roc1-ufshc"
+- reg and reg-names: six windows named "ufshci_reg", "ufsutp_reg",
+  "unipro_reg", "ufs_ao_reg", "mphy_reg", "analog_reg", in that order.
+- interrupts: the UFS host interrupt.
+- clocks, clock-names, freq-table-hz: the generic UFS platform clock list.
+- ap-apb-ufs-rst: syscon phandle, register offset and reset mask.
+- anlg-mphy-ufs-rst: syscon phandle, register offset and active-low reset mask.
+- aon-apb-ufs-rst: syscon phandle, register offset and reset mask.
+
+The MPHY and analog windows are shared with the ROC1 clock/syscon providers;
+their physical addresses are taken from the board's reg properties.
+Regulator properties follow the generic UFS host binding. Board supplies,
+clock IDs and reset masks must come from the matching board description.

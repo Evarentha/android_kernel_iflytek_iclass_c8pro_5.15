@@ -105,6 +105,10 @@ static int sprd_hwspinlock_probe(struct platform_device *pdev)
 
 	sprd_hwlock->clk = devm_clk_get(&pdev->dev, "enable");
 	if (IS_ERR(sprd_hwlock->clk)) {
+		/* Retry without clock name, some DTs omit clock-names */
+		sprd_hwlock->clk = devm_clk_get(&pdev->dev, NULL);
+	}
+	if (IS_ERR(sprd_hwlock->clk)) {
 		dev_err(&pdev->dev, "get hwspinlock clock failed!\n");
 		return PTR_ERR(sprd_hwlock->clk);
 	}
@@ -138,6 +142,7 @@ static int sprd_hwspinlock_probe(struct platform_device *pdev)
 
 static const struct of_device_id sprd_hwspinlock_of_match[] = {
 	{ .compatible = "sprd,hwspinlock-r3p0", },
+	{ .compatible = "sprd,roc1-hwspinlock", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, sprd_hwspinlock_of_match);

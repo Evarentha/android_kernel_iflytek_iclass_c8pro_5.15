@@ -10,6 +10,7 @@ clk-sprd-y	+= pll.o
 clk-sprd-y	+= reset.o
 
 ## SoC support
+obj-$(CONFIG_SPRD_ROC1_CLK)		+= roc1-clk.o
 obj-$(CONFIG_SPRD_SC9860_CLK)		+= sc9860-clk.o
 obj-$(CONFIG_SPRD_SC9863A_CLK)		+= sc9863a-clk.o
 obj-$(CONFIG_SPRD_UMS312_CLK)		+= ums312-clk.o

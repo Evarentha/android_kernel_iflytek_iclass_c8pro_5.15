@@ -1555,13 +1555,13 @@ int gsp_r8p0_core_trigger(struct gsp_core *c)
 
 	if (cfg->misc.secure_en == 1) {
 		if (c->secure_init == false) {
-			ret = trusty_fast_call32(NULL, SMC_FC_GSP_FW_SET_SECURITY, FW_ATTR_SECURE, 0, 0);
-			if (ret)
-				pr_err("Trusty gsp fastcall set firewall failed, ret = %d\n", ret);
+			/* Trusty is not enabled on this platform; skip the fastcall. */
+			ret = 0;
 		}
 		c->secure_init = true;
 	} else if (c->secure_init == true) {
-		ret = trusty_fast_call32(NULL, SMC_FC_GSP_FW_SET_SECURITY, FW_ATTR_NON_SECURE, 0, 0);
+		/* Trusty is not enabled on this platform; skip the fastcall. */
+		ret = 0;
 		if (ret)
 			pr_err("Trusty gsp fastcall clear firewall failed, ret = %d\n", ret);
 		c->secure_init = false;

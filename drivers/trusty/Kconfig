@@ -15,7 +15,7 @@ config TRUSTY
 
 
 config TRUSTY_LOG
-	tristate
+	tristate "Trusty log support"
 	depends on TRUSTY
 	default m
 

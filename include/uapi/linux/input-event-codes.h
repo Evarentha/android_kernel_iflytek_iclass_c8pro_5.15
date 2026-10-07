@@ -795,6 +795,10 @@
 #define BTN_TRIGGER_HAPPY39		0x2e6
 #define BTN_TRIGGER_HAPPY40		0x2e7
 
+/* Vendor keys for the hall-effect lid switch (moved from the 4.14 tree). */
+#define KEY_HALL_DOWN			0x2e8
+#define KEY_HALL_UP			0x2e9
+
 /* We avoid low common keys in module aliases so they don't get huge. */
 #define KEY_MIN_INTERESTING	KEY_MUTE
 #define KEY_MAX			0x2ff

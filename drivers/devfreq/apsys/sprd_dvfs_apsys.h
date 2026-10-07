@@ -75,6 +75,7 @@ struct apsys_dev {
 
 	unsigned long apsys_base;
 	unsigned long top_base;
+	struct regmap *top_regmap;
 	struct regmap *aon_base;
 	struct mutex reg_lock;
 };

@@ -365,6 +365,7 @@ static int sprd_pwm_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id sprd_pwm_of_match[] = {
+	{ .compatible = "sprd,sharkl5-pwm", 	.data = (void *)&sharkl5pro_data},
 	{ .compatible = "sprd,ums512-pwm", 	.data = (void *)&sharkl5pro_data},
 	{ .compatible = "sprd,ums9620-pwm", 	.data = (void *)&qogirn6pro_data},
 	{ },

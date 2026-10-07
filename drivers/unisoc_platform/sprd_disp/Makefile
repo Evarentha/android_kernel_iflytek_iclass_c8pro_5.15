@@ -23,6 +23,7 @@ sprd-drm-$(CONFIG_DRM_SPRD_DPU0) += \
 	dpu/dpu_lite_r1p0.o \
 	dpu/dpu_lite_r2p0.o \
 	dpu/dpu_r2p0.o \
+	dpu/dpu_r3p0.o \
 	dpu/dpu_r4p0.o \
 	dpu/dpu_r5p0.o \
 	dpu/dpu_r6p0.o
@@ -40,6 +41,9 @@ sprd-drm-$(CONFIG_DRM_SPRD_DSI) += \
 
 sprd-drm-y += \
 	pike2/global_dpu.o \
+	roc1/global_dispc.o \
+	roc1/global_dsi.o \
+	roc1/global_dphy.o \
 	pike2/global_dsi.o \
 	pike2/global_dphy.o \
 	sharkl5/global_dispc.o \
@@ -70,6 +74,7 @@ sprd-drm-y += \
 	sysfs/sysfs_backlight.o
 
 obj-$(CONFIG_UNISOC_DISP) += sprd-drm.o
+obj-$(CONFIG_DRM_SPRD_HDMI) += lt9611_i2c.o
 
 obj-$(CONFIG_UNISOC_GSP) += gsp/
 

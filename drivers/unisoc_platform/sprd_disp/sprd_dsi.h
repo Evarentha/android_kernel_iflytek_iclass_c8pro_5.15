@@ -201,6 +201,8 @@ struct sprd_dsi_ops {
 	const struct dsi_glb_ops *glb;
 };
 
+extern const struct dsi_glb_ops roc1_dsi_glb_ops;
+
 struct sprd_dsi {
 	struct device dev;
 	struct mipi_dsi_host host;

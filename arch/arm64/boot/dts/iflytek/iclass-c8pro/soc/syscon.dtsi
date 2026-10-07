@@ -1,0 +1,292 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+		ap_ahb_regs: syscon@20100000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x20100000 0x00 0x10000>;
+			phandle = <0x1d>;
+		};
+
+		ipa_ahb_regs: syscon@21040000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x21040000 0x00 0x10000>;
+			phandle = <0x16>;
+		};
+
+		pub_apb_regs: syscon@31050000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x31050000 0x00 0x10000>;
+			phandle = <0x8e>;
+		};
+
+		aon_apb_regs: syscon@32090000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32090000 0x00 0x10000>;
+			phandle = <0x10>;
+		};
+
+		pmu_apb_regs: syscon@32280000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32280000 0x00 0x10000>;
+			phandle = <0x02>;
+		};
+
+		ap_intc0_regs: syscon@32310000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32310000 0x00 0x10000>;
+			phandle = <0xef>;
+		};
+
+		ap_intc1_regs: syscon@32320000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32320000 0x00 0x10000>;
+			phandle = <0xf0>;
+		};
+
+		ap_intc2_regs: syscon@32330000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32330000 0x00 0x10000>;
+			phandle = <0xf1>;
+		};
+
+		ap_intc3_regs: syscon@32340000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32340000 0x00 0x10000>;
+			phandle = <0xf2>;
+		};
+
+		ap_intc4_regs: syscon@32350000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32350000 0x00 0x10000>;
+			phandle = <0x38>;
+		};
+
+		ap_intc5_regs: syscon@32360000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32360000 0x00 0x10000>;
+			phandle = <0xf3>;
+		};
+
+		anlg_phy_g0_regs: syscon@32390000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32390000 0x00 0x10000>;
+			phandle = <0x136>;
+		};
+
+		anlg_phy_g2_regs: syscon@323a0000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x323a0000 0x00 0x8000>;
+			phandle = <0x137>;
+		};
+
+		anlg_phy_g3_regs: syscon@323b0000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x323b0000 0x00 0x4000>;
+			phandle = <0x19>;
+		};
+
+		anlg_phy_g1_regs: syscon@323b4000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x323b4000 0x00 0x4000>;
+			phandle = <0x9f>;
+		};
+
+		anlg_phy_g4_regs: syscon@323c0000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x323c0000 0x00 0x10000>;
+			phandle = <0x78>;
+		};
+
+		anlg_phy_g5_regs: syscon@323d0000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x323d0000 0x00 0x4000>;
+			phandle = <0xb6>;
+		};
+
+		anlg_phy_g15_regs: syscon@323d4000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x323d4000 0x00 0xc000>;
+			phandle = <0x138>;
+		};
+
+		anlg_phy_g11_regs: syscon@323e0000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x323e0000 0x00 0x4000>;
+			phandle = <0x139>;
+		};
+
+		anlg_phy_g16_regs: syscon@323e4000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x323e4000 0x00 0x4000>;
+			phandle = <0x13a>;
+		};
+
+		anlg_phy_g19_regs: syscon@323e8000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x323e8000 0x00 0x8000>;
+			phandle = <0x13b>;
+		};
+
+		anlg_phy_g10_regs: syscon@323f0000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x323f0000 0x00 0x10000>;
+			phandle = <0x0e>;
+		};
+
+		anlg_phy_g8_regs: syscon@32400000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32400000 0x00 0x4000>;
+			phandle = <0x13c>;
+		};
+
+		anlg_phy_g13_regs: syscon@32404000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32404000 0x00 0x4000>;
+			phandle = <0x39>;
+		};
+
+		anlg_phy_g14_regs: syscon@32408000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32408000 0x00 0x4000>;
+			phandle = <0x13d>;
+		};
+
+		anlg_pcie20_phy_regs: syscon@3240c000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x3240c000 0x00 0x4000>;
+			phandle = <0x3a>;
+		};
+
+		anlg_phy_g9_regs: syscon@32410000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32410000 0x00 0x4000>;
+			phandle = <0x79>;
+		};
+
+		anlg_phy_g12_regs: syscon@32414000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32414000 0x00 0x4000>;
+			phandle = <0x13e>;
+		};
+
+		anlg_phy_g17_regs: syscon@32418000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32418000 0x00 0x4000>;
+			phandle = <0x77>;
+		};
+
+		anlg_phy_g18_regs: syscon@3241c000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x3241c000 0x00 0x4000>;
+			phandle = <0x13f>;
+		};
+
+		anlg_phy_top_regs: syscon@32420000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32420000 0x00 0x4000>;
+			phandle = <0x1a>;
+		};
+
+		anlg_phy_top1_regs: syscon@32424000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32424000 0x00 0x4000>;
+			phandle = <0x0d>;
+		};
+
+		anlg_phy_g6_regs: syscon@32434000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32434000 0x00 0x4000>;
+			phandle = <0x36>;
+		};
+
+		anlg_pcie30_phy_regs: syscon@32438000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x32438000 0x00 0x4000>;
+			phandle = <0x140>;
+		};
+
+		audcp_apb_regs: syscon@0x3350d000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x3350d000 0x00 0x10000>;
+			phandle = <0xb7>;
+		};
+
+		audcp_ahb_regs: syscon@0x335e0000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x335e0000 0x00 0x10000>;
+			phandle = <0xa2>;
+		};
+
+		gpu_apb_regs: syscon@60100000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x60100000 0x00 0x10000>;
+			phandle = <0x09>;
+		};
+
+		gpu_dvfs_apb_regs: syscon@60110000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x60110000 0x00 0x10000>;
+			phandle = <0x0a>;
+		};
+
+		mm_ahb_regs: syscon@62200000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x62200000 0x00 0x100000>;
+			phandle = <0x03>;
+		};
+
+		ai_apb_regs: syscon@6fd00000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x6fd00000 0x00 0x4000>;
+			phandle = <0xb1>;
+		};
+
+		ap_apb_regs: syscon@71000000 {
+			compatible = "syscon";
+			#syscon-cells = <0x02>;
+			reg = <0x00 0x71000000 0x00 0x100000>;
+			phandle = <0x9a>;
+		};
+

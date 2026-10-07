@@ -1050,6 +1050,7 @@ static const struct dev_pm_ops sprd_i2c_pm_ops = {
 
 static const struct of_device_id sprd_i2c_of_match[] = {
 	{ .compatible = "sprd,sc9860-i2c", },
+	{ .compatible = "sprd,roc1-i2c", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, sprd_i2c_of_match);

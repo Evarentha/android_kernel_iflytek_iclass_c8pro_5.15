@@ -498,6 +498,14 @@ config TI_PRUSS_INTC
 	  The PRUSS INTC enables various interrupts to be routed to multiple
 	  different processors within the SoC.
 
+config SPRD_IPA_INTC
+	bool "Unisoc UD710 IPA interrupt controller"
+	depends on ARCH_SPRD && OF
+	select IRQ_DOMAIN
+	select MFD_SYSCON
+	help
+	  Support the second-level interrupt controller in the ROC1 IPA domain.
+
 config RISCV_INTC
 	bool "RISC-V Local Interrupt Controller"
 	depends on RISCV

@@ -54,6 +54,7 @@ extern struct dma_buf *ion_dmabuf_alloc(struct ion_device *dev, size_t len,
 					unsigned int heap_id_mask,
 					unsigned int flags);
 extern int ion_free(struct ion_buffer *buffer);
+int ion_dmabuf_get_legacy_phys(int fd, u64 *addr, u64 *len);
 
 /* ion heap helpers */
 extern int ion_heap_cleanup(struct ion_heap *heap);

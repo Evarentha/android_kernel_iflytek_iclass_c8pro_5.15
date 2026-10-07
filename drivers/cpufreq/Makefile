@@ -116,6 +116,8 @@ obj-$(CONFIG_SPARC_US3_CPUFREQ)		+= sparc-us3-cpufreq.o
 
 ##################################################################################
 # unisoc platform drivers
+obj-$(CONFIG_ARM_SPRD_HW_CPUFREQ) += sprd-cpufreqhw.o sprd-hwdvfs-normal.o \
+	sprd-sysfs-normal.o sprd-hwdvfs-archdata.o roc1/sprd-cpufreq-common.o
 obj-$(CONFIG_ARM_SPRD_CPUFREQ_V2) += sprd-cpufreq-v2.o
 sprd-cpufreq-v2-objs := sprd-cpufreq-v2-driver.o sprd-cpufreq-v2-debug.o
 

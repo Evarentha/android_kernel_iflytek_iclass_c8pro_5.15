@@ -1,0 +1,25 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+	soc: soc {
+		compatible = "simple-bus";
+		#address-cells = <0x02>;
+		#size-cells = <0x02>;
+		ranges;
+		phandle = <0x135>;
+
+#include "soc/syscon.dtsi"
+#include "soc/multimedia.dtsi"
+#include "soc/ipa.dtsi"
+#include "soc/ap-ahb.dtsi"
+#include "soc/aon.dtsi"
+#include "soc/pub.dtsi"
+#include "soc/ap-apb.dtsi"
+#include "soc/audio.dtsi"
+#include "soc/npu.dtsi"
+#include "soc/clocks.dtsi"
+#include "soc/coresight.dtsi"
+	};
+

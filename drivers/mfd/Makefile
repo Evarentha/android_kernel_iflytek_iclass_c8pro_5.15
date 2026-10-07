@@ -4,6 +4,7 @@
 #
 
 88pm860x-objs			:= 88pm860x-core.o 88pm860x-i2c.o
+obj-$(CONFIG_MFD_SC2703)		+= sc2703.o sc2703-disp.o
 obj-$(CONFIG_MFD_88PM860X)	+= 88pm860x.o
 obj-$(CONFIG_MFD_88PM800)	+= 88pm800.o 88pm80x.o
 obj-$(CONFIG_MFD_88PM805)	+= 88pm805.o 88pm80x.o

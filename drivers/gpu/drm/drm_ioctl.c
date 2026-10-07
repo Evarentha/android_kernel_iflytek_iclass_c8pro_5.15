@@ -32,6 +32,7 @@
 #include <linux/nospec.h>
 #include <linux/pci.h>
 #include <linux/uaccess.h>
+#include <linux/ratelimit.h>
 
 #include <drm/drm_auth.h>
 #include <drm/drm_crtc.h>

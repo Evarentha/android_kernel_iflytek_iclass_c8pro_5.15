@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (C) 2011 Samsung Electronics Co., Ltd.
+ * Copyright (C) 2026 Evarentha
  * MyungJoo Ham <myungjoo.ham@samsung.com>
  *
  * This driver enables to monitor battery health and control charger
@@ -6786,12 +6787,23 @@ static ssize_t charger_stop_store(struct device *dev,
 	}
 
 	ret = sscanf(buf, "%d", &stop_charge);
-	if (!ret)
+	if (ret != 1)
 		return -EINVAL;
 
-	sysfs->externally_control = !!stop_charge;
-	if (!is_ext_pwr_online(cm))
+	if (!is_ext_pwr_online(cm)) {
+		sysfs->externally_control = !!stop_charge;
 		return -EINVAL;
+	}
+
+	/* Android health may repeat the same policy on every battery uevent.
+	 * Do not generate a fresh uevent (and monitor run) for an unchanged
+	 * request, or health and charger-manager can keep waking each other.
+	 */
+	if (sysfs->externally_control == !!stop_charge &&
+	    cm->charger_enabled == !stop_charge)
+		return count;
+
+	sysfs->externally_control = !!stop_charge;
 
 	dev_info(cm->dev, "%s, stop_charge=%d\n", __func__, stop_charge);
 	if (!stop_charge) {
@@ -8599,10 +8611,8 @@ static int charger_manager_probe(struct platform_device *pdev)
 	mutex_init(&cm->desc->charger_type_mtx);
 
 	ret = cm_get_bat_info(cm);
-	if (ret) {
-		dev_err(&pdev->dev, "Failed to get battery information\n");
-		goto err;
-	}
+	if (ret)
+		dev_warn(&pdev->dev, "Failed to get battery information (ret=%d), continuing without it\n", ret);
 
 	cm->cm_charge_vote = sprd_charge_vote_register("cm_charge_vote",
 						       cm_sprd_vote_callback,
@@ -8660,6 +8670,7 @@ static int charger_manager_probe(struct platform_device *pdev)
 err:
 
 	wakeup_source_remove(cm->charge_ws);
+	wakeup_source_unregister(cm->charge_ws);
 
 	return ret;
 }
@@ -8686,6 +8697,11 @@ static int charger_manager_remove(struct platform_device *pdev)
 	cancel_delayed_work_sync(&cm->uvlo_work);
 
 	power_supply_unregister(cm->charger_psy);
+
+	wakeup_source_remove(cm->charge_ws);
+	wakeup_source_unregister(cm->charge_ws);
+	wakeup_source_remove(cm->cp_ws);
+	wakeup_source_unregister(cm->cp_ws);
 
 	try_charger_enable(cm, false);
 

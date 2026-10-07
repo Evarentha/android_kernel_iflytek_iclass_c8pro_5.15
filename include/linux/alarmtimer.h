@@ -11,6 +11,9 @@ struct rtc_device;
 enum alarmtimer_type {
 	ALARM_REALTIME,
 	ALARM_BOOTTIME,
+	ALARM_POWEROFF,
+	ALARM_POWERON,
+	ALARM_POWEROFF_ALARM,
 
 	/* Supported types end here */
 	ALARM_NUMTYPE,

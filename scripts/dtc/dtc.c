@@ -8,6 +8,9 @@
 #include "dtc.h"
 #include "srcpos.h"
 
+/* SPRD: 4.14 BSP dtc extension — dtbo merge check (-M). */
+extern int dtbo_merge_chk_main(int argc, char *argv[]);
+
 /*
  * Command line options
  */
@@ -47,7 +50,7 @@ static void fill_fullpaths(struct node *tree, const char *prefix)
 
 /* Usage related data. */
 static const char usage_synopsis[] = "dtc [options] <input file>";
-static const char usage_short_opts[] = "qI:O:o:V:d:R:S:p:a:fb:i:H:sW:E:@AThv";
+static const char usage_short_opts[] = "qI:O:o:V:d:R:S:p:a:fb:i:H:sW:E:@AThvM";
 static struct option const usage_long_opts[] = {
 	{"quiet",            no_argument, NULL, 'q'},
 	{"in-format",         a_argument, NULL, 'I'},
@@ -71,6 +74,7 @@ static struct option const usage_long_opts[] = {
 	{"annotate",         no_argument, NULL, 'T'},
 	{"help",             no_argument, NULL, 'h'},
 	{"version",          no_argument, NULL, 'v'},
+	{"dtbo merge check", no_argument, NULL, 'M'},
 	{NULL,               no_argument, NULL, 0x0},
 };
 static const char * const usage_opts_help[] = {
@@ -108,6 +112,7 @@ static const char * const usage_opts_help[] = {
 	"\n\tAnnotate output .dts with input source file and line (-T -T for more details)",
 	"\n\tPrint this help and exit",
 	"\n\tPrint version and exit",
+	"\n\tdtb apply dtbo file",
 	NULL,
 };
 
@@ -258,6 +263,12 @@ int main(int argc, char *argv[])
 		case 'T':
 			annotate++;
 			break;
+
+		case 'M':
+			if (dtbo_merge_chk_main(argc, argv))
+				die("check dtb apply dtbo!\n");
+			else
+				exit(0);
 
 		case 'h':
 			usage(NULL);

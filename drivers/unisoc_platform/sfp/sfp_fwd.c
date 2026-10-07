@@ -202,9 +202,9 @@ static void sfp_mode_timer(struct sfp_conn *ul_sfp_ct)
 		unsigned long newtime = jiffies + sysctl_udp_aging_time;
 
 		if (newtime - sfp_ct->timeout.expires >= HZ) {
-			spin_lock_bh(&mgr_lock);
+			spin_lock_bh(&sfp_mgr_lock);
 			mod_timer(&sfp_ct->timeout, newtime);
-			spin_unlock_bh(&mgr_lock);
+			spin_unlock_bh(&sfp_mgr_lock);
 		}
 	}
 }

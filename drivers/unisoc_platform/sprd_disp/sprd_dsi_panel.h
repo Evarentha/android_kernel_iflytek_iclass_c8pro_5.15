@@ -102,6 +102,7 @@ struct sprd_panel {
 	char lcd_name[50];
 	struct backlight_device *backlight;
 	struct regulator *supply;
+	bool supply_enabled;
 	struct delayed_work esd_work;
 	bool esd_work_pending;
 	struct mutex lock;

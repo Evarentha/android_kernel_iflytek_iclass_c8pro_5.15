@@ -1,0 +1,395 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+		funnel@3c002000 {
+			compatible = "arm,coresight-funnel", "arm,primecell";
+			reg = <0x00 0x3c002000 0x00 0x1000>;
+			clocks = <0x7a>;
+			clock-names = "apb_pclk";
+
+			ports {
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+
+				port@0 {
+					reg = <0x00>;
+
+					funnel_soc_out_port: endpoint {
+						remote-endpoint = <0xb8>;
+						phandle = <0xba>;
+					};
+				};
+
+				port@1 {
+					reg = <0x01>;
+
+					funnel_soc_in_port: endpoint {
+						slave-mode;
+						remote-endpoint = <0xb9>;
+						phandle = <0xc4>;
+					};
+				};
+			};
+		};
+
+		etb@3c003000 {
+			compatible = "arm,coresight-tmc", "arm,primecell";
+			reg = <0x00 0x3c003000 0x00 0x1000>;
+			clocks = <0x7a>;
+			clock-names = "apb_pclk";
+
+			port {
+
+				etb_in: endpoint {
+					slave-mode;
+					remote-endpoint = <0xba>;
+					phandle = <0xb8>;
+				};
+			};
+		};
+
+		ts@3c009000 {
+			compatible = "arm,coresight-ts", "arm,primecell";
+			reg = <0x00 0x3c009000 0x00 0x1000>;
+		};
+
+		funnel@3e001000 {
+			compatible = "arm,coresight-funnel", "arm,primecell";
+			reg = <0x00 0x3e001000 0x00 0x1000>;
+			clocks = <0x7a>;
+			clock-names = "apb_pclk";
+
+			ports {
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+
+				port@0 {
+					reg = <0x00>;
+
+					funnel_lit_out_port: endpoint {
+						remote-endpoint = <0xbb>;
+						phandle = <0xc1>;
+					};
+				};
+
+				port@1 {
+					reg = <0x00>;
+
+					funnel_lit_in_port0: endpoint {
+						slave-mode;
+						remote-endpoint = <0xbc>;
+						phandle = <0xcd>;
+					};
+				};
+
+				port@2 {
+					reg = <0x01>;
+
+					funnel_lit_in_port1: endpoint {
+						slave-mode;
+						remote-endpoint = <0xbd>;
+						phandle = <0xcf>;
+					};
+				};
+
+				port@3 {
+					reg = <0x02>;
+
+					funnel_lit_in_port2: endpoint {
+						slave-mode;
+						remote-endpoint = <0xbe>;
+						phandle = <0xd5>;
+					};
+				};
+
+				port@4 {
+					reg = <0x03>;
+
+					funnel_lit_in_port3: endpoint {
+						slave-mode;
+						remote-endpoint = <0xbf>;
+						phandle = <0xd7>;
+					};
+				};
+			};
+		};
+
+		etf@3e002000 {
+			compatible = "arm,coresight-tmc", "arm,primecell";
+			reg = <0x00 0x3e002000 0x00 0x1000>;
+			clocks = <0x7a>;
+			clock-names = "apb_pclk";
+
+			port@0 {
+
+				etf_lit_out: endpoint {
+					remote-endpoint = <0xc0>;
+					phandle = <0xc5>;
+				};
+			};
+
+			port@1 {
+
+				etf_lit_in: endpoint {
+					slave-mode;
+					remote-endpoint = <0xc1>;
+					phandle = <0xbb>;
+				};
+			};
+		};
+
+		etf@3e003000 {
+			compatible = "arm,coresight-tmc", "arm,primecell";
+			reg = <0x00 0x3e003000 0x00 0x1000>;
+			clocks = <0x7a>;
+			clock-names = "apb_pclk";
+
+			port@0 {
+
+				etf_big_out: endpoint {
+					remote-endpoint = <0xc2>;
+					phandle = <0xc6>;
+				};
+			};
+
+			port@1 {
+
+				etf_big_in: endpoint {
+					slave-mode;
+					remote-endpoint = <0xc3>;
+					phandle = <0xc7>;
+				};
+			};
+		};
+
+		funnel@3e004000 {
+			compatible = "arm,coresight-funnel", "arm,primecell";
+			reg = <0x00 0x3e004000 0x00 0x1000>;
+			clocks = <0x7a>;
+			clock-names = "apb_pclk";
+
+			ports {
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+
+				port@0 {
+					reg = <0x00>;
+
+					funnel_core_out_port: endpoint {
+						remote-endpoint = <0xc4>;
+						phandle = <0xb9>;
+					};
+				};
+
+				port@1 {
+					reg = <0x00>;
+
+					funnel_core_in_port0: endpoint {
+						slave-mode;
+						remote-endpoint = <0xc5>;
+						phandle = <0xc0>;
+					};
+				};
+
+				port@2 {
+					reg = <0x01>;
+
+					funnel_core_in_port1: endpoint {
+						slave-mode;
+						remote-endpoint = <0xc6>;
+						phandle = <0xc2>;
+					};
+				};
+			};
+		};
+
+		funnel@3e005000 {
+			compatible = "arm,coresight-funnel", "arm,primecell";
+			reg = <0x00 0x3e005000 0x00 0x1000>;
+			clocks = <0x7a>;
+			clock-names = "apb_pclk";
+
+			ports {
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+
+				port@0 {
+					reg = <0x00>;
+
+					funnel_big_out_port: endpoint {
+						remote-endpoint = <0xc7>;
+						phandle = <0xc3>;
+					};
+				};
+
+				port@1 {
+					reg = <0x00>;
+
+					funnel_big_in_port0: endpoint {
+						slave-mode;
+						remote-endpoint = <0xc8>;
+						phandle = <0xd1>;
+					};
+				};
+
+				port@2 {
+					reg = <0x01>;
+
+					funnel_big_in_port1: endpoint {
+						slave-mode;
+						remote-endpoint = <0xc9>;
+						phandle = <0xd3>;
+					};
+				};
+
+				port@3 {
+					reg = <0x02>;
+
+					funnel_big_in_port2: endpoint {
+						slave-mode;
+						remote-endpoint = <0xca>;
+						phandle = <0xd9>;
+					};
+				};
+
+				port@4 {
+					reg = <0x03>;
+
+					funnel_big_in_port3: endpoint {
+						slave-mode;
+						remote-endpoint = <0xcb>;
+						phandle = <0xdb>;
+					};
+				};
+			};
+		};
+
+		etm@3f040000 {
+			compatible = "arm,coresight-etm4x", "arm,primecell";
+			reg = <0x00 0x3f040000 0x00 0x1000>;
+			cpu = <0xcc>;
+			clocks = <0x7a 0x7b 0x24 0x07 0x08>;
+			clock-names = "apb_pclk", "clk_cs", "cs_src";
+
+			port {
+
+				etm0_out: endpoint {
+					remote-endpoint = <0xcd>;
+					phandle = <0xbc>;
+				};
+			};
+		};
+
+		etm@3f140000 {
+			compatible = "arm,coresight-etm4x", "arm,primecell";
+			reg = <0x00 0x3f140000 0x00 0x1000>;
+			cpu = <0xce>;
+			clocks = <0x7a 0x7b 0x24 0x07 0x08>;
+			clock-names = "apb_pclk", "clk_cs", "cs_src";
+
+			port {
+
+				etm1_out: endpoint {
+					remote-endpoint = <0xcf>;
+					phandle = <0xbd>;
+				};
+			};
+		};
+
+		etm@3f240000 {
+			compatible = "arm,coresight-etm4x", "arm,primecell";
+			reg = <0x00 0x3f240000 0x00 0x1000>;
+			cpu = <0xd0>;
+			clocks = <0x7a 0x7b 0x24 0x07 0x08>;
+			clock-names = "apb_pclk", "clk_cs", "cs_src";
+
+			port {
+
+				etm2_out: endpoint {
+					remote-endpoint = <0xd1>;
+					phandle = <0xc8>;
+				};
+			};
+		};
+
+		etm@3f340000 {
+			compatible = "arm,coresight-etm4x", "arm,primecell";
+			reg = <0x00 0x3f340000 0x00 0x1000>;
+			cpu = <0xd2>;
+			clocks = <0x7a 0x7b 0x24 0x07 0x08>;
+			clock-names = "apb_pclk", "clk_cs", "cs_src";
+
+			port {
+
+				etm3_out: endpoint {
+					remote-endpoint = <0xd3>;
+					phandle = <0xc9>;
+				};
+			};
+		};
+
+		etm@3f440000 {
+			compatible = "arm,coresight-etm4x", "arm,primecell";
+			reg = <0x00 0x3f440000 0x00 0x1000>;
+			cpu = <0xd4>;
+			clocks = <0x7a 0x7b 0x24 0x07 0x08>;
+			clock-names = "apb_pclk", "clk_cs", "cs_src";
+
+			port {
+
+				etm4_out: endpoint {
+					remote-endpoint = <0xd5>;
+					phandle = <0xbe>;
+				};
+			};
+		};
+
+		etm@3f540000 {
+			compatible = "arm,coresight-etm4x", "arm,primecell";
+			reg = <0x00 0x3f540000 0x00 0x1000>;
+			cpu = <0xd6>;
+			clocks = <0x7a 0x7b 0x24 0x07 0x08>;
+			clock-names = "apb_pclk", "clk_cs", "cs_src";
+
+			port {
+
+				etm5_out: endpoint {
+					remote-endpoint = <0xd7>;
+					phandle = <0xbf>;
+				};
+			};
+		};
+
+		etm@3f640000 {
+			compatible = "arm,coresight-etm4x", "arm,primecell";
+			reg = <0x00 0x3f640000 0x00 0x1000>;
+			cpu = <0xd8>;
+			clocks = <0x7a 0x7b 0x24 0x07 0x08>;
+			clock-names = "apb_pclk", "clk_cs", "cs_src";
+
+			port {
+
+				etm6_out: endpoint {
+					remote-endpoint = <0xd9>;
+					phandle = <0xca>;
+				};
+			};
+		};
+
+		etm@3f740000 {
+			compatible = "arm,coresight-etm4x", "arm,primecell";
+			reg = <0x00 0x3f740000 0x00 0x1000>;
+			cpu = <0xda>;
+			clocks = <0x7a 0x7b 0x24 0x07 0x08>;
+			clock-names = "apb_pclk", "clk_cs", "cs_src";
+
+			port {
+
+				etm7_out: endpoint {
+					remote-endpoint = <0xdb>;
+					phandle = <0xcb>;
+				};
+			};
+		};

@@ -7,6 +7,7 @@
 #define _SPRD_GEM_H_
 
 #include <drm/drm_gem.h>
+#include <linux/dma-buf-map.h>
 
 struct sprd_gem_obj {
 	struct drm_gem_object	base;
@@ -14,6 +15,8 @@ struct sprd_gem_obj {
 	struct sg_table		*sgtb;
 	void			*vaddr;
 	bool			need_iommu;
+	struct dma_buf		*fb_dmabuf;
+	struct dma_buf_map	fb_map;
 };
 
 #define to_sprd_gem_obj(x)	container_of(x, struct sprd_gem_obj, base)

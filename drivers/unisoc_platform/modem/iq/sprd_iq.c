@@ -112,7 +112,7 @@ static int sprd_iq_thread(void *data)
 }
 
 #if IS_ENABLED(CONFIG_USB_F_VSERIAL)
-static void sprd_iq_complete(char *buf,  unsigned int length, void *unused)
+__maybe_unused static void sprd_iq_complete(char *buf, unsigned int length, void *unused)
 {
 	char *vaddr;
 

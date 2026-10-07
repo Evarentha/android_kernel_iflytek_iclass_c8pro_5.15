@@ -1,0 +1,264 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+	thm_zone: thermal-zones {
+		phandle = <0x1c5>;
+
+		soc_thmzone: soc-thmzone {
+			polling-delay-passive = <0x64>;
+			polling-delay = <0x3e8>;
+			sustainable-power = <0x12c0>;
+			thermal-sensors = <0x108 0x11>;
+			phandle = <0x1c6>;
+
+			trips {
+
+				soc_threshold: trip-point@0 {
+					temperature = <0x11170>;
+					hysteresis = <0x3e8>;
+					type = "passive";
+					phandle = <0x1c7>;
+				};
+
+				soc_target: trip-point@1 {
+					temperature = <0x14c08>;
+					hysteresis = <0x3e8>;
+					type = "passive";
+					phandle = <0x109>;
+				};
+
+				soc_crit: soc_crit {
+					temperature = <0x1adb0>;
+					hysteresis = <0x7d0>;
+					type = "critical";
+					phandle = <0x1c8>;
+				};
+			};
+
+			cooling-maps {
+
+				map0 {
+					trip = <0x109>;
+					contribution = <0x400>;
+					cooling-device = <0x10a 0xffffffff 0xffffffff>;
+				};
+
+				map1 {
+					trip = <0x109>;
+					contribution = <0x2a2>;
+					cooling-device = <0x10b 0xffffffff 0xffffffff>;
+				};
+			};
+		};
+
+		bigcore6a7_thmzone: bigcore6a7-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10c 0x00>;
+			phandle = <0x1c9>;
+		};
+
+		bigcore4_thmzone: bigcore4-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10c 0x01>;
+			phandle = <0x1ca>;
+		};
+
+		bigcore5_thmzone: bigcore5-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10c 0x02>;
+			phandle = <0x1cb>;
+		};
+
+		bigcore6_thmzone: bigcore6-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10c 0x03>;
+			phandle = <0x1cc>;
+		};
+
+		bigcore7_thmzone: bigcore7-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10c 0x04>;
+			phandle = <0x1cd>;
+		};
+
+		ai0_thmzone: ai0-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10d 0x00>;
+			phandle = <0x1ce>;
+		};
+
+		ai1_thmzone: ai1-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10d 0x01>;
+			phandle = <0x1cf>;
+		};
+
+		gpu0_thmzone: gpu0-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10e 0x00>;
+			phandle = <0x1d0>;
+		};
+
+		mm_thmzone: mm-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10e 0x01>;
+			phandle = <0x1d1>;
+		};
+
+		cputop0_thmzone: cputop0-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10f 0x00>;
+			phandle = <0x1d2>;
+		};
+
+		littlecore0_thmzone: littlecore0-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10f 0x01>;
+			phandle = <0x1d3>;
+		};
+
+		littlecore1_thmzone: littlecore1-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10f 0x02>;
+			phandle = <0x1d4>;
+		};
+
+		littlecore2_thmzone: littlecore2-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10f 0x03>;
+			phandle = <0x1d5>;
+		};
+
+		littlecore3_thmzone: littlecore3-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10f 0x04>;
+			phandle = <0x1d6>;
+		};
+
+		cputop1_thmzone: cputop1-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10f 0x05>;
+			phandle = <0x1d7>;
+		};
+
+		gpu1_thmzone: gpu1-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x10f 0x06>;
+			phandle = <0x1d8>;
+		};
+
+		cluster0_thmzone: cluster0-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			sustainable-power = <0x7d0>;
+			thermal-sensors = <0x110 0x0f>;
+			phandle = <0x1d9>;
+		};
+
+		cluster1_thmzone: cluster1-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			sustainable-power = <0x7d0>;
+			thermal-sensors = <0x111 0x10>;
+			phandle = <0x1da>;
+		};
+
+		bd_thmzone: board-thmzone {
+			polling-delay-passive = <0x00>;
+			polling-delay = <0x00>;
+			thermal-sensors = <0x112>;
+			phandle = <0x1db>;
+		};
+	};
+
+	cooling-devices {
+
+		cluster0_cooling: cluster0-cooling {
+			compatible = "sprd,cluster-cooling";
+			#cooling-cells = <0x02>;
+			sprd,efuse-block7 = <0x07>;
+			sprd,efuse-block15 = <0x0f>;
+			sprd,leak-core = <0x02 0x55 0x74d>;
+			sprd,leak-cluster = <0x02 0x55 0x9dc>;
+			sprd,core-temp-scale = <0x0f 0xfffffd28 0x11170 0xfffe2b40>;
+			sprd,core-voltage-scale = <0x317 0xfffff8b5 0x62d 0xfffffe6b>;
+			sprd,cluster-temp-scale = <0x0f 0xfffffd28 0x11170 0xfffe2b40>;
+			sprd,cluster-voltage-scale = <0x317 0xfffff8b5 0x62d 0xfffffe6b>;
+			sprd,efuse-switch = <0x00>;
+			sprd,hotplug-period = <0x0a>;
+			sprd,min-cpufreq = "", "\t`";
+			sprd,min-cpunum = <0x04>;
+			sprd,core-base = <0xada>;
+			sprd,cluster-base = <0xf50>;
+			sprd,dynamic-core = <0x49a 0x3e8 0x3e8>;
+			sprd,dynamic-cluster = <0x0b 0x3e8 0x3e8>;
+			sprd,sensor-names = "littlecore0-thmzone", "littlecore1-thmzone", "littlecore2-thmzone", "littlecore3-thmzone";
+			sprd,cii-per-core-tp = <0x186a0 0x17318 0x16760 0x15f90>;
+			sprd,cii-max-tp-core = <0x00>;
+			phandle = <0x10a>;
+		};
+
+		cluster1_cooling: cluster1-cooling {
+			compatible = "sprd,cluster-cooling";
+			#cooling-cells = <0x02>;
+			sprd,efuse-block7 = <0x07>;
+			sprd,efuse-block15 = <0x0f>;
+			sprd,leak-core = <0x08 0x55 0x7c0>;
+			sprd,leak-cluster = <0x08 0x55 0x810>;
+			sprd,core-temp-scale = <0x0f 0xfffffd28 0x11170 0xfffe2b40>;
+			sprd,core-voltage-scale = <0x317 0xfffff8b5 0x62d 0xfffffe6b>;
+			sprd,cluster-temp-scale = <0x0f 0xfffffd28 0x11170 0xfffe2b40>;
+			sprd,cluster-voltage-scale = <0x317 0xfffff8b5 0x62d 0xfffffe6b>;
+			sprd,efuse-switch = <0x00>;
+			sprd,hotplug-period = <0x0a>;
+			sprd,min-cpufreq = <0x12c000>;
+			sprd,min-cpunum = <0x00>;
+			sprd,core-base = <0x24d6>;
+			sprd,cluster-base = <0xf50>;
+			sprd,dynamic-core = <0x15c3 0x3e8 0x3e8>;
+			sprd,dynamic-cluster = <0x0b 0x3e8 0x3e8>;
+			sprd,sensor-names = "bigcore4-thmzone", "bigcore5-thmzone", "bigcore6-thmzone", "bigcore7-thmzone";
+			sprd,cii-per-core-tp = <0x17318 0x16760 0x16760 0x15f90>;
+			sprd,cii-max-tp-core = <0x00>;
+			phandle = <0x10b>;
+		};
+	};
+
+	gpu-cooling-devices {
+
+		gpu_cooling0: gpu-cooling0 {
+			compatible = "sprd,mali-power-model";
+			#cooling-cells = <0x02>;
+			sprd,efuse-block7 = <0x07>;
+			sprd,efuse-block15 = <0x0f>;
+			sprd,leak-core = <0x02 0x55 0x74d>;
+			sprd,leak-cluster = <0x02 0x55 0x9dc>;
+			sprd,temp-scale = <0x12c 0xffff8eb8 0x16c038 0xff2af4f0>;
+			sprd,voltage-scale = <0xfffff9a3 0x19e3 0xffffe529 0x8ae>;
+			sprd,hotplug-period = <0x00>;
+			sprd,core-base = <0x3c6>;
+			sprd,cluster-base = <0x3c6>;
+			sprd,dynamic-core = <0x179e 0x300 0x384>;
+			sprd,dynamic-cluster = <0x17b0 0x300 0x384>;
+			phandle = <0x1dc>;
+		};
+	};
+

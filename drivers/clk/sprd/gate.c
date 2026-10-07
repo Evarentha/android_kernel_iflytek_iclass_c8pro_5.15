@@ -3,6 +3,7 @@
 // Spreadtrum gate clock driver
 //
 // Copyright (C) 2017 Spreadtrum, Inc.
+// Copyright (C) 2026 Evarentha
 // Author: Chunyan Zhang <chunyan.zhang@spreadtrum.com>
 
 #include <linux/clk-provider.h>
@@ -97,11 +98,26 @@ static int sprd_gate_is_enabled(struct clk_hw *hw)
 	struct clk_hw *parent;
 	unsigned int reg;
 
-	if (sg->flags & SPRD_GATE_NON_AON) {
-		parent = clk_hw_get_parent(hw);
-		if (!parent || !clk_hw_is_enabled(parent))
-			return 0;
-	}
+	/*
+	 * The common clock core reads the enabled state of every clock at
+	 * registration time (core->boot_enabled = clk_core_is_enabled()).
+	 * At roc1_clk_probe() time most clock domains are still unpowered,
+	 * and reading a gate register located in an unpowered domain raises
+	 * an asynchronous SError (bus fault) which panics the kernel.
+	 *
+	 * The 4.14 roc1 clock tables predate the SPRD_GATE_NON_AON
+	 * annotations used by the newer SPRD tables, so apply the parent
+	 * guard to every gate: only touch the register once the parent
+	 * domain clock is enabled.  A gate whose parent is not enabled
+	 * cannot be enabled itself (its domain is unpowered), so reporting
+	 * "disabled" without reading is also the correct answer.  Parents
+	 * without an is_enabled implementation (fixed/div sources) fall
+	 * back to the software enable counter in the clock core, which is
+	 * 0 until the domain clock is enabled - the same safe answer.
+	 */
+	parent = clk_hw_get_parent(hw);
+	if (!parent || !clk_hw_is_enabled(parent))
+		return 0;
 
 	regmap_read(common->regmap, common->reg, &reg);
 

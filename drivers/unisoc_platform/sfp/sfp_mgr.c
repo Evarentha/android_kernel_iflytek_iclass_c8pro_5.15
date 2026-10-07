@@ -59,7 +59,7 @@
 #endif
 #define CHK_HASH_TBL_SIZE (sizeof(struct hd_hash_tbl) != 8)
 
-spinlock_t mgr_lock;/* Spinlock for sfp */
+spinlock_t sfp_mgr_lock;/* Spinlock for sfp */
 /* Entry in manager */
 struct hlist_head mgr_fwd_entries[SFP_ENTRIES_HASH_SIZE];
 static const char * const sfp_netdev[] = {
@@ -205,10 +205,10 @@ static void sfp_mgr_fwd_death_by_timeout(struct timer_list *t)
 		sfp_ipa_fwd_delete(&sfp_entry->tuplehash[IP_CT_DIR_REPLY],
 				   sfp_entry->hash[IP_CT_DIR_REPLY]);
 		spin_unlock_bh(&fwd_tbl.sp_lock);
-		spin_lock_bh(&mgr_lock);
+		spin_lock_bh(&sfp_mgr_lock);
 		break;
 	case SFP_SOFT_PATH:
-		spin_lock_bh(&mgr_lock);
+		spin_lock_bh(&sfp_mgr_lock);
 		delete_in_sfp_fwd_table(&sfp_entry->tuplehash[IP_CT_DIR_ORIGINAL]);
 		delete_in_sfp_fwd_table(&sfp_entry->tuplehash[IP_CT_DIR_REPLY]);
 		break;
@@ -226,7 +226,7 @@ static void sfp_mgr_fwd_death_by_timeout(struct timer_list *t)
 		sfp_ipa_fwd_delete(&sfp_entry->tuplehash[IP_CT_DIR_REPLY],
 				   sfp_entry->hash[IP_CT_DIR_REPLY]);
 		spin_unlock_bh(&fwd_tbl.sp_lock);
-		spin_lock_bh(&mgr_lock);
+		spin_lock_bh(&sfp_mgr_lock);
 		delete_in_sfp_fwd_table(&sfp_entry->tuplehash[IP_CT_DIR_ORIGINAL]);
 		delete_in_sfp_fwd_table(&sfp_entry->tuplehash[IP_CT_DIR_REPLY]);
 		break;
@@ -252,7 +252,7 @@ static void sfp_mgr_fwd_death_by_timeout(struct timer_list *t)
 	}
 
 	rcu_read_unlock_bh();
-	spin_unlock_bh(&mgr_lock);
+	spin_unlock_bh(&sfp_mgr_lock);
 }
 
 static int sfp_tuple_to_fwd_entries(struct nf_conntrack_tuple *tuple,
@@ -1017,7 +1017,7 @@ void sfp_clear_fwd_table(int ifindex)
 	if (ifindex == 0)
 		return;
 
-	spin_lock_bh(&mgr_lock);
+	spin_lock_bh(&sfp_mgr_lock);
 	rcu_read_lock_bh();
 	for (i = 0; i < SFP_ENTRIES_HASH_SIZE; i++) {
 		hlist_for_each_entry_rcu(tuple_hash,
@@ -1033,7 +1033,7 @@ void sfp_clear_fwd_table(int ifindex)
 		}
 	}
 	rcu_read_unlock_bh();
-	spin_unlock_bh(&mgr_lock);
+	spin_unlock_bh(&sfp_mgr_lock);
 }
 
 /* Clear the whole sfp entries hash table. */
@@ -1238,7 +1238,7 @@ static int __init init_sfp_module(void)
 {
 	int ret;
 
-	spin_lock_init(&mgr_lock);
+	spin_lock_init(&sfp_mgr_lock);
 	sfp_entries_hash_init();
 
 	ret = platform_driver_register(&sfp_ipa_plat_drv);

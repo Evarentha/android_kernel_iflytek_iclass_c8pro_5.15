@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2020 Unisoc Inc.
+ * Copyright (C) 2026 Evarentha
  */
 
 #include <linux/dma-buf.h>
@@ -16,6 +17,17 @@
 #include "sprd_gem.h"
 #include "sprd_plane.h"
 
+/*
+ * Factory SPRD HWC uses raw modifier 1 as an XFBC marker, with the actual
+ * compression/header configuration supplied through FBC plane properties.
+ * This is a legacy SPRD ABI, not the upstream modifier 1 (Intel X tiled).
+ */
+static const u64 sprd_legacy_modifiers[] = {
+	DRM_FORMAT_MOD_LINEAR,
+	1,
+	DRM_FORMAT_MOD_INVALID,
+};
+
 static int sprd_plane_prepare_fb(struct drm_plane *plane,
 				struct drm_plane_state *new_state)
 {
@@ -26,7 +38,7 @@ static int sprd_plane_prepare_fb(struct drm_plane *plane,
 		return 0;
 
 	if (crtc->ops->prepare_fb)
-		crtc->ops->prepare_fb(crtc, new_state);
+		return crtc->ops->prepare_fb(crtc, new_state);
 
 	return 0;
 }
@@ -93,6 +105,8 @@ static void sprd_plane_atomic_update(struct drm_plane *drm_plane,
 	layer->rotation = drm_state->rotation;
 	layer->planes = drm_state->fb->format->num_planes;
 	layer->format = drm_state->fb->format->format;
+	/* The factory HWC selects XFBC with the per-FB legacy modifier. */
+	layer->xfbc = drm_state->fb->modifier == 1;
 
 	DRM_DEBUG("%s() alpha = %u, blending = %u, rotation = %u, y2r_coef = %u\n",
 		  __func__, layer->alpha, layer->blending,
@@ -367,7 +381,8 @@ struct sprd_plane *sprd_plane_init(struct drm_device *drm,
 		err = drm_universal_plane_init(drm, &planes[i].base,
 					       1 << drm->mode_config.num_crtc,
 					       &sprd_plane_funcs, cap->fmts_ptr,
-					       cap->fmts_cnt, NULL, type, NULL);
+					       cap->fmts_cnt, sprd_legacy_modifiers,
+					       type, NULL);
 		if (err) {
 			DRM_ERROR("failed to initialize primary plane\n");
 			return ERR_PTR(err);

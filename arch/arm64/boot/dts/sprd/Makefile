@@ -1,5 +1,23 @@
 # SPDX-License-Identifier: GPL-2.0
 
+# ROC1 has individual base trees for each silicon and FPGA board.
+roc1-boards := ud710-3h10 ud710-3h10u ud710-5h10 ud710-2h10 \
+	ud710-10h10 ud710-2c11 ud710-7h10 ud710-20c11 ud710-2h10u \
+	ud710-9h10u ud710-2c10 ud710-20c10 ud710-haps ud710-haps-bkd \
+	ud710-orca-haps
+
+ifeq ($(BSP_BUILD_FAMILY),roc1)
+dtb-$(CONFIG_ARCH_SPRD) += $(addsuffix .dtb,$(roc1-boards))
+dtb-$(CONFIG_ARCH_SPRD) += $(addsuffix -overlay.dtbo,$(roc1-boards))
+else ifneq ($(BSP_BUILD_DT_OVERLAY),y)
+dtb-$(CONFIG_ARCH_SPRD) += $(addsuffix .dtb,$(roc1-boards))
+dtb-$(CONFIG_ARCH_SPRD) += $(addsuffix -overlay.dtbo,$(roc1-boards))
+endif
+
+# Symbols are also needed when a board DTB is built as an explicit target.
+$(foreach board,$(roc1-boards),$(eval DTC_FLAGS_$(board) += -@))
+$(foreach board,$(roc1-boards),$(eval $(board)-overlay.dtbo-base := $(board).dtb))
+
 ifeq ($(BSP_BUILD_DT_OVERLAY),y)
 
 ifeq ($(BSP_BUILD_ANDROID_OS),y)

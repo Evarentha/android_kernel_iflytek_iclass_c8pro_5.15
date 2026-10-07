@@ -19,4 +19,18 @@ config SPRD_SENSOR_HUB
 	  Say Y here to build support for sensor hub.
 	  To compile this driver as a module, choose M here
 
+config MITOCHODRIA_SENSOR_HUB_LEGACY
+	bool "Mitochodria legacy Android 9 SensorHub protocol"
+	depends on SPRD_SENSOR_HUB
+	help
+	  Restore the opcode download and tagged event ABI used by the
+	  legacy CM4 firmware and Android 9 sensor HAL.
+
+config MITOCHODRIA_CM4_LOADER
+	bool "Mitochodria ROC1 CM4 userspace loader interface"
+	depends on ARCH_SPRD && OF && PROC_FS && MFD_SYSCON
+	help
+	  Expose DT-described CM4 memory segments to the userspace Trusty
+	  firmware loader. Firmware authentication remains owned by the TEE.
+
 endmenu

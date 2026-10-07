@@ -9,6 +9,7 @@
  * interface.
  *
  * Copyright (C) 2010 IBM Corporation
+ * Copyright (C) 2026 Evarentha
  *
  * Author: John Stultz <john.stultz@linaro.org>
  */
@@ -300,6 +301,51 @@ static int alarmtimer_suspend(struct device *dev)
 	return ret;
 }
 
+static void alarmtimer_shutdown(struct platform_device *pdev)
+{
+	struct rtc_device *rtc = alarmtimer_get_rtcdev();
+	struct rtc_wkalrm alarm = { .enabled = 1 };
+	ktime_t min = 0, early = ktime_set(120, 0), now;
+	int i, ret, type = ALARM_NUMTYPE;
+	unsigned long flags;
+
+	if (!rtc)
+		return;
+	/* Factory policy: power-on alarms, or power-off alarm minus two minutes. */
+	for (i = ALARM_POWERON; i < ALARM_NUMTYPE; i++) {
+		struct alarm_base *base = &alarm_bases[i];
+		struct timerqueue_node *next;
+		ktime_t delta;
+
+		spin_lock_irqsave(&base->lock, flags);
+		next = timerqueue_getnext(&base->timerqueue);
+		if (!next) {
+			spin_unlock_irqrestore(&base->lock, flags);
+			continue;
+		}
+		delta = ktime_sub(next->expires, base->get_ktime());
+		spin_unlock_irqrestore(&base->lock, flags);
+		if (i == ALARM_POWEROFF_ALARM && delta <= early)
+			continue;
+		if (!min || delta <= min) {
+			min = delta;
+			type = i;
+		}
+	}
+	if (type == ALARM_NUMTYPE || min < ktime_set(10, 0))
+		return;
+	ret = rtc_read_time(rtc, &alarm.time);
+	if (ret)
+		return;
+	now = ktime_add(rtc_tm_to_ktime(alarm.time), min);
+	if (type == ALARM_POWEROFF_ALARM)
+		now = ktime_sub(now, early);
+	alarm.time = rtc_ktime_to_tm(now);
+	ret = rtc_set_alarm(rtc, &alarm);
+	if (ret)
+		dev_err(&pdev->dev, "power-off RTC alarm failed: %d\n", ret);
+}
+
 static int alarmtimer_resume(struct device *dev)
 {
 	struct rtc_device *rtc;
@@ -311,6 +357,10 @@ static int alarmtimer_resume(struct device *dev)
 }
 
 #else
+static void alarmtimer_shutdown(struct platform_device *pdev)
+{
+}
+
 static int alarmtimer_suspend(struct device *dev)
 {
 	return 0;
@@ -911,6 +961,7 @@ static const struct dev_pm_ops alarmtimer_pm_ops = {
 };
 
 static struct platform_driver alarmtimer_driver = {
+	.shutdown = alarmtimer_shutdown,
 	.driver = {
 		.name = "alarmtimer",
 		.pm = &alarmtimer_pm_ops,
@@ -943,6 +994,11 @@ static int __init alarmtimer_init(void)
 	alarm_bases[ALARM_BOOTTIME].base_clockid = CLOCK_BOOTTIME;
 	alarm_bases[ALARM_BOOTTIME].get_ktime = &ktime_get_boottime;
 	alarm_bases[ALARM_BOOTTIME].get_timespec = get_boottime_timespec;
+	for (i = ALARM_POWEROFF; i < ALARM_NUMTYPE; i++) {
+		alarm_bases[i].base_clockid = CLOCK_REALTIME;
+		alarm_bases[i].get_ktime = ktime_get_real;
+		alarm_bases[i].get_timespec = ktime_get_real_ts64;
+	}
 	for (i = 0; i < ALARM_NUMTYPE; i++) {
 		timerqueue_init_head(&alarm_bases[i].timerqueue);
 		spin_lock_init(&alarm_bases[i].lock);

@@ -13,6 +13,13 @@
 
 #include <linux/module.h>
 #include <linux/kernel.h>
+#include <linux/types.h>
+
+#if IS_ENABLED(CONFIG_TRUSTY)
+
+
+#include <linux/module.h>
+#include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/err.h>
 #include <linux/slab.h>
@@ -339,3 +346,16 @@ int wcn_firmware_sec_verify(u32 wcn_or_gnss_bin,
 
 	return do_wcn_firmware_sec_verify(&verify_ctrl);
 }
+
+#else
+/*
+ * Without Trusty (the plain ud710 configuration) there is no CA channel to
+ * verify the firmware through; keep the download path working by treating
+ * the image as verified, exactly like the 4.14 build did.
+ */
+int wcn_firmware_sec_verify(u32 wcn_or_gnss_bin, u32 base_addr, u32 size)
+{
+	return 0;
+}
+EXPORT_SYMBOL(wcn_firmware_sec_verify);
+#endif

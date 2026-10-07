@@ -3,6 +3,7 @@
  * trusty-pm.c - Unisoc platform driver
  *
  * Copyright 2022 Unisoc(Shanghai) Technologies Co.Ltd
+ * Copyright (C) 2026 Evarentha
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +21,7 @@
 
 #include <linux/module.h>
 #include <linux/init.h>
+#include <linux/of.h>
 #include <linux/syscore_ops.h>
 #include <linux/sched/clock.h>
 #include <linux/timekeeping.h>
@@ -33,6 +35,8 @@
 #undef pr_fmt
 #endif
 #define pr_fmt(fmt) "sprd-trusty-pm: " fmt
+
+static bool mitochodria_legacy_cpu_pm;
 
 /*
  * This call synchronizes linux boot time to trusty OS by calling two SMC
@@ -87,7 +91,16 @@ static struct syscore_ops trusty_pm_ops = {
 
 static void trusty_resident_on_cpu(void *data, int cpu, bool *resident)
 {
-	*resident = !trusty_fast_call32(NULL, SMC_FC_CPU_CAN_DOWN, cpu, 0, 0);
+	s32 ret;
+
+	/* This firmware ABI returns a status, not a boolean permission. */
+	if (mitochodria_legacy_cpu_pm) {
+		ret = trusty_fast_call32_power(SMC_FC_CPU_CAN_DOWN, cpu, 0, 0);
+		*resident = ret < 0;
+	} else {
+		ret = trusty_fast_call32(NULL, SMC_FC_CPU_CAN_DOWN, cpu, 0, 0);
+		*resident = !ret;
+	}
 }
 
 static void trusty_check_cpu_suspend(void *data, u32 state, bool *deny)
@@ -97,6 +110,13 @@ static void trusty_check_cpu_suspend(void *data, u32 state, bool *deny)
 
 static int __init trusty_pm_init(void)
 {
+	struct device_node *np;
+
+	np = of_find_compatible_node(NULL, NULL, "sprd,trusty-smc-v1");
+	mitochodria_legacy_cpu_pm = of_property_read_bool(np,
+				"sprd,cpu-can-down-status-abi");
+	of_node_put(np);
+
 	/* Fist time sync on boot up */
 	trusty_sync_boot_time();
 

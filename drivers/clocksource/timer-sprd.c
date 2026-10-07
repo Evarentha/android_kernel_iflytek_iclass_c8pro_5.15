@@ -337,6 +337,8 @@ static int sprd_suspend_timer_init(struct device_node *np)
 }
 
 static const struct of_device_id sc9860_timer_match_table[] = {
+	{ .compatible = "sprd,roc1-timer", .data = sprd_timer_init },
+	{ .compatible = "sprd,roc1-suspend-timer", .data = sprd_suspend_timer_init },
 	{ .compatible = "sprd,sc9860-timer",
 		.data = sprd_timer_init },
 	{ .compatible = "sprd,sc9860-suspend-timer",

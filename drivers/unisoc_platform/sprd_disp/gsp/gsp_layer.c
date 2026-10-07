@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2020 Unisoc Inc.
+ * Copyright (C) 2026 Evarentha
  */
 
 #include <linux/dma-direction.h>
@@ -160,7 +161,7 @@ int gsp_layer_get_dmabuf(struct gsp_layer *layer)
 	}
 	buf->dmabuf = dmabuf;
 	buf->size = dmabuf->size;
-	buf->is_iova = 1;
+	buf->is_iova = 0;
 
 	GSP_DEBUG("layer[%d] get dmabuf success\n", gsp_layer_to_type(layer));
 	ret = 0;
@@ -254,8 +255,9 @@ done:
 int gsp_layer_iommu_map(struct gsp_layer *layer, struct device *dev)
 {
 	int ret = -1;
-	struct sprd_iommu_map_data iommu_data;
+	struct sprd_iommu_map_data iommu_data = {};
 	struct gsp_buf *buf = NULL;
+	struct ion_buffer *ionbuf;
 
 	/* this buf has been assigned when kcfg get dmabuf
 	 * so we need to check whether it is validate
@@ -271,7 +273,14 @@ int gsp_layer_iommu_map(struct gsp_layer *layer, struct device *dev)
 	iommu_data.buf = buf->dmabuf->priv;
 	iommu_data.iova_size = buf->size;
 	iommu_data.ch_type = SPRD_IOMMU_FM_CH_RW;
-	ret = sprd_iommu_map(dev, &iommu_data);
+	ionbuf = ion_dmabuf_to_buffer(buf->dmabuf);
+	if (!IS_ERR(ionbuf)) {
+		iommu_data.table = ionbuf->sg_table;
+		ret = sprd_iommu_map_v2(dev, &iommu_data,
+					SPRD_IOMMU_BUFTYPE_SG_TABLE);
+	} else {
+		ret = sprd_iommu_map(dev, &iommu_data);
+	}
 	if (ret) {
 		GSP_ERR("get dma buffer address failed\n");
 		goto done;
@@ -282,6 +291,7 @@ int gsp_layer_iommu_map(struct gsp_layer *layer, struct device *dev)
 		ret = -1;
 	} else {
 		gsp_layer_addr_set(layer, iommu_data.iova_addr);
+		buf->is_iova = 1;
 	}
 done:
 	if (ret < 0)
@@ -298,13 +308,13 @@ void gsp_layer_iommu_unmap(struct gsp_layer *layer, struct device *dev)
 {
 	struct gsp_buf *buf = NULL;
 	struct gsp_addr_data *addr = NULL;
-	struct sprd_iommu_unmap_data iommu_data;
+	struct sprd_iommu_unmap_data iommu_data = {};
 
 	iommu_data.buf = NULL;
 
 	buf = gsp_layer_to_buf(layer);
 	addr = gsp_layer_to_addr(layer);
-	if (buf->size && addr->addr_y) {
+	if (buf->is_iova && buf->size && addr->addr_y) {
 		/* fill iommu data with gsp buf information */
 		iommu_data.iova_size = buf->size;
 		iommu_data.iova_addr = addr->addr_y;
@@ -315,6 +325,7 @@ void gsp_layer_iommu_unmap(struct gsp_layer *layer, struct device *dev)
 	}
 
 	gsp_layer_addr_put(layer);
+	buf->is_iova = 0;
 }
 
 void gsp_layer_common_print(struct gsp_layer *layer)

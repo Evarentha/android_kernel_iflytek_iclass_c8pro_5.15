@@ -208,6 +208,9 @@ struct shub_data {
 	wait_queue_head_t  rw_wait_queue;
 	struct sent_cmd  sent_cmddata;
 	struct mutex send_command_mutex;	/* mutex for sending command */
+	struct mutex factory_init_lock;
+	u16 factory_version;
+	u8 factory_subversion;
 	u8 *regs_addr_buf;
 	u8 *regs_value_buf;
 	u8 regs_num;
@@ -218,6 +221,7 @@ struct shub_data {
 	void (*save_mag_offset)(struct shub_data *sensor, u8 *buff, u32 len);
 	void (*data_callback)(struct shub_data *sensor, u8 *buff, u32 len);
 	void (*readcmd_callback)(struct shub_data *sensor, u8 *buff, u32 len);
+	void (*response_callback)(struct shub_data *sensor, u8 *buff, u32 len);
 	void (*cm4_read_callback)(struct shub_data *sensor,
 				  enum shub_subtype_id subtype,
 				  u8 *buff, u32 len);

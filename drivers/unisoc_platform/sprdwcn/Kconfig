@@ -2,6 +2,13 @@
 # Unisoc WCN device (NEW )configuration
 #
 menu "Unisoc WCN Device Drivers"
+config MITOCHODRIA_WCN_PCIE
+	bool "Mitochodria ROC1 external Marlin3 PCIe transport"
+	depends on UNISOC_WCN_BSP=y && PCIE_SPRD=y
+	help
+	  Build the external SC2355 PCIe transport with a built-in ROC1 root
+	  controller. The board must describe unisoc,marlin3_pcie resources.
+
 config UNISOC_WCN_BSP
 	tristate "UNISOC_WCN_BSP"
 	help

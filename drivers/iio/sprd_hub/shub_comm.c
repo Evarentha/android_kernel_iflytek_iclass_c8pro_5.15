@@ -28,6 +28,10 @@ static void shub_get_data(struct cmd_data *packet)
 		break;
 
 	case SHUB_DATA_SUBTYPE:
+		if (IS_ENABLED(CONFIG_MITOCHODRIA_SENSOR_HUB_LEGACY)) {
+			g_sensor->data_callback(g_sensor, packet->buff, packet->length);
+			break;
+		}
 		data_number =
 		(packet->length)/sizeof(struct shub_sensor_event);
 		while (count != data_number) {
@@ -37,6 +41,11 @@ static void shub_get_data(struct cmd_data *packet)
 			count++;
 		}
 
+		break;
+
+	case SHUB_RESPONSE_SUBTYPE:
+		if (g_sensor->response_callback)
+			g_sensor->response_callback(g_sensor, packet->buff, packet->length);
 		break;
 
 	case SHUB_CM4_OPERATE:

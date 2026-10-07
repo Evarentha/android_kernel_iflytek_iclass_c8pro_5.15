@@ -2551,6 +2551,11 @@ static int sc27xx_fgu_get_property(struct power_supply *psy,
 		val->intval = data->total_mah * 1000;
 		break;
 
+	case POWER_SUPPLY_PROP_CALIBRATE:
+		/* Capacity reference set by sc27xx_fgu_adjust_cap(), in 0.1%. */
+		val->intval = data->init_cap;
+		break;
+
 	case POWER_SUPPLY_PROP_CYCLE_COUNT:
 		val->intval = data->charge_cycle;
 		break;

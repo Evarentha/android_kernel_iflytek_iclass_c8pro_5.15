@@ -159,7 +159,7 @@ void static_key_slow_inc(struct static_key *key)
 	static_key_slow_inc_cpuslocked(key);
 	cpus_read_unlock();
 }
-EXPORT_SYMBOL_GPL(static_key_slow_inc);
+EXPORT_SYMBOL(static_key_slow_inc);
 
 void static_key_enable_cpuslocked(struct static_key *key)
 {
@@ -269,7 +269,7 @@ void static_key_slow_dec(struct static_key *key)
 	STATIC_KEY_CHECK_USE(key);
 	__static_key_slow_dec(key);
 }
-EXPORT_SYMBOL_GPL(static_key_slow_dec);
+EXPORT_SYMBOL(static_key_slow_dec);
 
 void static_key_slow_dec_cpuslocked(struct static_key *key)
 {

@@ -1,0 +1,1493 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+	sprd_headset: sprd-headset {
+		compatible = "sprd,headset";
+		status = "okay";
+		sprd,jack-type = <0x00>;
+		io-channels = <0x2a 0x14>;
+		io-channel-names = "headmic_in_little";
+		gpios = <0x83 0x06 0x00>;
+		sprd,debounce-interval = <0x0a>;
+		gpio-names = "aud_int_all";
+		sprd,3pole-adc-threshold = <0x70>;
+		sprd,adc-gnd = <0x148>;
+		sprd,half-adc-gnd = <0x64>;
+		sprd,coefficient = <0xd7f28>;
+		sprd,irq-threshold-button = <0x04>;
+		nvmem-cells = <0x80 0x118>;
+		nvmem-cell-names = "hp_adc_fir_calib", "hp_adc_sec_calib";
+		extcon = <0x1c>;
+		mic-gpios = <0x2d 0x8e 0x01>;
+		lr-gpios = <0x2d 0x37 0x00>;
+		switch-supply = <0x1b>;
+		sprd,switch-voltage = <0x325aa0>;
+		phandle = <0x119>;
+
+		sprd,headset-button@0 {
+			adc-min = <0x00>;
+			adc-max = <0x1e0>;
+			code = <0xe2>;
+		};
+
+		sprd,headset-button@1 {
+			adc-min = <0x1e1>;
+			adc-max = <0x3de>;
+			code = <0x73>;
+		};
+
+		sprd,headset-button@2 {
+			adc-min = <0x3df>;
+			adc-max = <0x9c4>;
+			code = <0x72>;
+		};
+	};
+
+	sound_vbc_v4_sprd_codec: sound@0 {
+		compatible = "sprd,vbc-v4-codec-sc2730";
+		status = "okay";
+		sprd-audio-card,name = "sprdphone-sc2730";
+		sprd-audio-card,widgets = "Headphone", "inter HP PA", "Speaker", "inter Spk PA", "Speaker", "inter Ear PA";
+		sprd-audio-card,routing = "HPMIC Pin", "HP Mic Jack", "MIC Pin", "Mic Jack", "MIC2 Pin", "Aux Mic Jack", "inter HP PA", "HP Pin", "inter Spk PA", "SPK Pin", "DMIC Pin", "DMic Jack", "DMIC1 Pin", "DMic1 Jack", "inter Ear PA", "EAR Pin";
+		sprd-audio-card,headset = <0x119>;
+		sprd,syscon-agcp-ahb = <0xa2>;
+		phandle = <0x1ec>;
+
+		sprd-audio-card,dai-link@0 {
+			link-name = "FE_NORMAL_AP01";
+			stream-name = "FE_ST_NORMAL_AP01";
+			ignore-suspend = <0x00>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x00>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@1 {
+			link-name = "FE_NORMAL_AP23";
+			stream-name = "FE_ST_NORMAL_AP23";
+			ignore-suspend = <0x00>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x01>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@2 {
+			link-name = "FE_CAPTURE_DSP";
+			stream-name = "FE_ST_CAPTURE_DSP";
+			ignore-suspend = <0x01>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x02>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@3 {
+			link-name = "FE_FAST";
+			stream-name = "FE_ST_FAST";
+			ignore-suspend = <0x01>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x03>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@4 {
+			link-name = "FE_OFFLOAD";
+			stream-name = "FE_ST_OFFLOAD";
+			ignore-suspend = <0x00>;
+			ignore-pmdown-time = <0x00>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11c>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x04>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x01>;
+			};
+		};
+
+		sprd-audio-card,dai-link@5 {
+			link-name = "FE_VOICE";
+			stream-name = "FE_ST_VOICE";
+			ignore-suspend = <0x01>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x05>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@6 {
+			link-name = "FE_VOIP";
+			stream-name = "FE_ST_VOIP";
+			ignore-suspend = <0x01>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x06>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@7 {
+			link-name = "FE_FM";
+			stream-name = "FE_ST_FM";
+			ignore-suspend = <0x01>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x07>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@8 {
+			link-name = "FE_FM_C";
+			stream-name = "FE_ST_FM_C";
+			ignore-suspend = <0x01>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x08>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@9 {
+			link-name = "FE_VOICE_C";
+			stream-name = "FE_ST_VOICE_C";
+			ignore-suspend = <0x01>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x09>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@10 {
+			link-name = "FE_LOOP";
+			stream-name = "FE_ST_LOOP";
+			ignore-suspend = <0x01>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x0a>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@11 {
+			link-name = "FE_A2DP_OFFLOAD";
+			stream-name = "FE_ST_A2DP_OFFLOAD";
+			ignore-suspend = <0x00>;
+			ignore-pmdown-time = <0x00>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11c>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x0b>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@12 {
+			link-name = "FE_A2DP_PCM";
+			stream-name = "FE_ST_A2DP_PCM";
+			ignore-suspend = <0x00>;
+			ignore-pmdown-time = <0x00>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x0c>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@13 {
+			link-name = "FE_CAPTURE_FM_DSP";
+			stream-name = "FE_ST_CAPTURE_FM_DSP";
+			ignore-suspend = <0x01>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x0d>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@14 {
+			link-name = "FE_CAPTURE_BTSCO_DSP";
+			stream-name = "FE_ST_CAPTURE_BTSCO_DSP";
+			ignore-suspend = <0x01>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x0e>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@15 {
+			link-name = "FE_FM_DSP";
+			stream-name = "FE_ST_FM_DSP";
+			ignore-suspend = <0x01>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x0f>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@16 {
+			link-name = "FE_DUMP";
+			stream-name = "FE_ST_DUMP";
+			ignore-suspend = <0x01>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x10>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@17 {
+			link-name = "FE_BTCAP_AP";
+			stream-name = "FE_ST_BTCAP_AP";
+			ignore-suspend = <0x01>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x11>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@18 {
+			ignore-suspend = <0x00>;
+			link-name = "BE_NORMAL_AP01_CODEC";
+			stream-name = "BE_ST_NORMAL_AP01_CODEC";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x00>;
+			};
+
+			codec {
+				sound-dai = <0x11f 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@19 {
+			ignore-suspend = <0x00>;
+			link-name = "BE_NORMAL_AP23_CODEC";
+			stream-name = "BE_ST_NORMAL_AP23_CODEC";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x01>;
+			};
+
+			codec {
+				sound-dai = <0x11f 0x01>;
+			};
+		};
+
+		sprd-audio-card,dai-link@20 {
+			ignore-suspend = <0x00>;
+			link-name = "BE_CAPTURE_DSP_CODEC";
+			stream-name = "BE_ST_CAPTURE_DSP_CODEC";
+			no-pcm = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x02>;
+			};
+
+			codec {
+				sound-dai = <0x11f 0x02>;
+			};
+		};
+
+		sprd-audio-card,dai-link@21 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_FAST_CODEC";
+			stream-name = "BE_ST_FAST_CODEC";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x03>;
+			};
+
+			codec {
+				sound-dai = <0x11f 0x03>;
+			};
+		};
+
+		sprd-audio-card,dai-link@22 {
+			ignore-suspend = <0x00>;
+			ignore-pmdown-time = <0x00>;
+			link-name = "BE_OFFLOAD_CODEC";
+			stream-name = "BE_ST_OFFLOAD_CODEC";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x04>;
+			};
+
+			codec {
+				sound-dai = <0x11f 0x04>;
+			};
+		};
+
+		sprd-audio-card,dai-link@23 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_VOICE_CODEC";
+			stream-name = "BE_ST_VOICE_CODEC";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x05>;
+			};
+
+			codec {
+				sound-dai = <0x11f 0x05>;
+			};
+		};
+
+		sprd-audio-card,dai-link@24 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_VOIP_CODEC";
+			stream-name = "BE_ST_VOIP_CODEC";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x06>;
+			};
+
+			codec {
+				sound-dai = <0x11f 0x06>;
+			};
+		};
+
+		sprd-audio-card,dai-link@25 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_FM_CODEC";
+			stream-name = "BE_ST_FM_CODEC";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x07>;
+			};
+
+			codec {
+				sound-dai = <0x11f 0x07>;
+			};
+		};
+
+		sprd-audio-card,dai-link@26 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_LOOP_CODEC";
+			stream-name = "BE_ST_LOOP_CODEC";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x08>;
+			};
+
+			codec {
+				sound-dai = <0x11f 0x08>;
+			};
+		};
+
+		sprd-audio-card,dai-link@27 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_FM_DSP_CODEC";
+			stream-name = "BE_ST_FM_DSP_CODEC";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x09>;
+			};
+
+			codec {
+				sound-dai = <0x11f 0x09>;
+			};
+		};
+
+		sprd-audio-card,dai-link@28 {
+			ignore-suspend = <0x00>;
+			link-name = "BE_NORMAL_AP01_USB";
+			stream-name = "BE_ST_NORMAL_AP01_USB";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x0a>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@29 {
+			ignore-suspend = <0x00>;
+			link-name = "BE_NORMAL_AP23_USB";
+			stream-name = "BE_ST_NORMAL_AP23_USB";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x0b>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@30 {
+			ignore-suspend = <0x00>;
+			link-name = "BE_CAPTURE_DSP_USB";
+			stream-name = "BE_ST_CAPTURE_DSP_USB";
+			no-pcm = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x0c>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@31 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_FAST_USB";
+			stream-name = "BE_ST_FAST_USB";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x0d>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@32 {
+			ignore-suspend = <0x00>;
+			ignore-pmdown-time = <0x00>;
+			link-name = "BE_OFFLOAD_USB";
+			stream-name = "BE_ST_OFFLOAD_USB";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x0e>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@33 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_VOICE_USB";
+			stream-name = "BE_ST_VOICE_USB";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x0f>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@34 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_VOIP_USB";
+			stream-name = "BE_ST_VOIP_USB";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x10>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@35 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_FM_USB";
+			stream-name = "BE_ST_FM_USB";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x11>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@36 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_LOOP_USB";
+			stream-name = "BE_ST_LOOP_USB";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x12>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@37 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_FM_DSP_USB";
+			stream-name = "BE_ST_FM_DSP_USB";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x13>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@38 {
+			ignore-suspend = <0x00>;
+			ignore-pmdown-time = <0x00>;
+			link-name = "BE_OFFLOAD_A2DP";
+			stream-name = "BE_ST_OFFLOAD_A2DP";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x14>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@39 {
+			ignore-suspend = <0x00>;
+			ignore-pmdown-time = <0x00>;
+			link-name = "BE_PCM_A2DP";
+			stream-name = "BE_ST_PCM_A2DP";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x15>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@40 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_VOICE_BT";
+			stream-name = "BE_ST_VOICE_BT";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x16>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@41 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_VOIP_BT";
+			stream-name = "BE_ST_VOIP_BT";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x17>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@42 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_LOOP_BT";
+			stream-name = "BE_ST_LOOP_BT";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x18>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@43 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_BT_C";
+			stream-name = "BE_ST_BT_C";
+			no-pcm = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x19>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@44 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_VOICE_C";
+			stream-name = "BE_ST_VOICE_C";
+			no-pcm = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x1a>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@45 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_FM_C";
+			stream-name = "BE_ST_FM_C";
+			no-pcm = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x1b>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@46 {
+			ignore-suspend = <0x00>;
+			link-name = "BE_CAPTURE_FM_DSP";
+			stream-name = "BE_ST_CAPTURE_FM_DSP";
+			no-pcm = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x1c>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@47 {
+			ignore-suspend = <0x00>;
+			link-name = "BE_CAPTURE_BTSCO_DSP";
+			stream-name = "BE_ST_CAPTURE_BTSCO_DSP";
+			no-pcm = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x1d>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@48 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_DUMP";
+			stream-name = "BE_DUMP";
+			no-pcm = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x1e>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@49 {
+			link-name = "FE_TEST_CODEC";
+			stream-name = "FE_ST_TEST_CODEC";
+			ignore-suspend = <0x00>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				/* FE_DAI_ID_CODEC_TEST: Voice PCM occupies index 18. */
+				sound-dai = <0x11b 0x13>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@50 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_TEST_CODEC";
+			stream-name = "BE_TEST_CODEC";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x1f>;
+			};
+
+			codec {
+				sound-dai = <0x11f 0x0e>;
+			};
+		};
+
+		sprd-audio-card,dai-link@51 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_FAST_BTSCO";
+			stream-name = "BE_ST_FAST_BTSCO";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x20>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@52 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_NORMAL_AP01_BTSCO";
+			stream-name = "BE_ST_NORMAL_AP01_BTSCO";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x21>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@56 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_NORMAL_AP01_SMTPA";
+			stream-name = "BE_ST_NORMAL_AP01_SMTPA";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+			dai-format = "i2s";
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x22>;
+			};
+
+			codec {
+				sound-dai = <0x120 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@57 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_NORMAL_AP23_SMTPA";
+			stream-name = "BE_ST_NORMAL_AP23_SMTPA";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+			dai-format = "i2s";
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x23>;
+			};
+
+			codec {
+				sound-dai = <0x120 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@58 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_FAST_P_SMTPA";
+			stream-name = "BE_ST_FAST_P_SMTPA";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+			dai-format = "i2s";
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x24>;
+			};
+
+			codec {
+				sound-dai = <0x120 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@59 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_OFFLOAD_SMTPA";
+			stream-name = "BE_ST_OFFLOAD_SMTPA";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+			dai-format = "i2s";
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x25>;
+			};
+
+			codec {
+				sound-dai = <0x120 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@60 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_VOICE_SMTPA";
+			stream-name = "BE_ST_VOICE_SMTPA";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+			dai-format = "i2s";
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x26>;
+			};
+
+			codec {
+				sound-dai = <0x120 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@61 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_VOIP_SMTPA";
+			stream-name = "BE_DAI_ID_VOIP_SMTPA";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+			dai-format = "i2s";
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x27>;
+			};
+
+			codec {
+				sound-dai = <0x120 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@62 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_FM_SMTPA";
+			stream-name = "BE_ST_FM_SMTPA";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+			dai-format = "i2s";
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x28>;
+			};
+
+			codec {
+				sound-dai = <0x120 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@63 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_LOOP_SMTPA";
+			stream-name = "BE_ST_LOOP_SMTPA";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+			dai-format = "i2s";
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x29>;
+			};
+
+			codec {
+				sound-dai = <0x120 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@64 {
+			ignore-suspend = <0x01>;
+			link-name = "BE_FM_DSP_SMTPA";
+			stream-name = "BE_ST_FM_DSP_SMTPA";
+			no-pcm = <0x01>;
+			dpcm-playback = <0x01>;
+			be-id = <0x00>;
+			dai-format = "i2s";
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x2a>;
+			};
+
+			codec {
+				sound-dai = <0x120 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@65 {
+			link-name = "FE_RECOGNISE_CAPTURE";
+			stream-name = "FE_ST_RECOGNISE_CAPTURE";
+			ignore-suspend = <0x01>;
+			dynamic = <0x01>;
+			trigger = <0x01 0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11a>;
+			};
+
+			cpu {
+				sound-dai = <0x11b 0x14>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+
+		sprd-audio-card,dai-link@66 {
+			ignore-suspend = <0x00>;
+			link-name = "BE_RECOGNISE_CAPTURE_CODEC";
+			stream-name = "BE_ST_RECOGNISE_CAPTURE_CODEC";
+			no-pcm = <0x01>;
+			dpcm-capture = <0x01>;
+			be-id = <0x00>;
+
+			plat {
+				sound-dai = <0x11d>;
+			};
+
+			cpu {
+				sound-dai = <0x11e 0x2b>;
+			};
+
+			codec {
+				sound-dai = <0x11f 0x0f>;
+			};
+		};
+	};
+
+	sprd_pcm_iis: sprd-pcm-iis {
+		compatible = "sprd,sharkl5-pcm-platform";
+		#sound-dai-cells = <0x00>;
+		dmas = <0x116 0x05 0x116 0x06>;
+		dma-names = "iis0_tx", "iis0_rx";
+		sprd,dma-2stage-usecase = <0x02>;
+		sprd,node-count-2stage-level-1 = <0x01>;
+		sprd,syscon-pmu-apb = <0x02>;
+		sprd,dma-2stage-level-1-int-source = <0x01>;
+		phandle = <0x121>;
+	};
+
+	sound_sprd_ap_alliis: sound@1 {
+		compatible = "sprd,i2s-null-codec";
+		status = "disabled";
+		sprd-audio-card,name = "all-i2s";
+		phandle = <0x1ed>;
+
+		sprd-audio-card,dai-link@0 {
+
+			plat {
+				sound-dai = <0x121>;
+			};
+
+			cpu {
+				sound-dai = <0x122>;
+			};
+
+			codec {
+				sound-dai = <0x00 0x00>;
+			};
+		};
+	};
+

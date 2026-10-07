@@ -844,9 +844,8 @@ static int dpu_init(struct dpu_context *ctx)
 
 	enhance->frame_no = 0;
 
-	ret = trusty_fast_call32(NULL, SMC_FC_DPU_FW_SET_SECURITY, FW_ATTR_SECURE, 0, 0);
-	if (ret)
-		pr_err("Trusty fastcall set firewall failed, ret = %d\n", ret);
+	/* Trusty is not enabled on this platform; skip the firewall fastcall. */
+	ret = 0;
 
 	return 0;
 }
@@ -858,9 +857,8 @@ static void dpu_fini(struct dpu_context *ctx)
 	DPU_REG_WR(ctx->base + REG_DPU_INT_EN, 0x00);
 	DPU_REG_WR(ctx->base + REG_DPU_INT_CLR, 0xff);
 
-	ret = trusty_fast_call32(NULL, SMC_FC_DPU_FW_SET_SECURITY, FW_ATTR_NON_SECURE, 0, 0);
-	if (ret)
-		pr_err("Trusty fastcall clear firewall failed, ret = %d\n", ret);
+	/* Trusty is not enabled on this platform; skip the firewall fastcall. */
+	ret = 0;
 
 	ctx->panel_ready = false;
 }

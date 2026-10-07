@@ -15,6 +15,10 @@ libfdt-objs	:= fdt.o fdt_ro.o fdt_wip.o fdt_sw.o fdt_rw.o fdt_strerror.o fdt_emp
 libfdt		= $(addprefix libfdt/,$(libfdt-objs))
 fdtoverlay-objs	:= $(libfdt) fdtoverlay.o util.o
 
+# SPRD: dtc also links libfdt for the -M dtbo merge check, matching the
+# 4.14 BSP dtc (dtc -M base.dtb overlay.dtbo used by the build layer).
+dtc-objs	+= $(libfdt) libfdt/dtbo_merge_check.o
+
 # Source files need to get at the userspace version of libfdt_env.h to compile
 HOST_EXTRACFLAGS += -I $(srctree)/$(src)/libfdt
 

@@ -1,0 +1,218 @@
+/*
+ * Spreadtrum Roc1 SoC DTS file
+ *
+ * Copyright (C) 2018, Spreadtrum Communications Inc.
+ *
+ * This file is licensed under a dual GPLv2 or X11 license.
+ */
+
+#include <dt-bindings/clock/sprd,roc1-clk.h>
+#include "roc1.dtsi"
+
+/ {
+	cpuinfo_hardware = "Unisoc UD710";
+
+#include "platform/cpu.dtsi"
+#include "platform/interrupts.dtsi"
+#include "platform/soc.dtsi"
+#include "platform/power-debug.dtsi"
+};
+
+&sdio0 {
+	clock-names = "sdio_clk", "sdio_clk_source","sdio_ahb_enable";
+	clocks = <&ap_clk CLK_AP_SDIO0_2X>,
+		 <&ana_g5_clk CLK_RPLL>,
+		 <&apapb_gate CLK_SDIO0_EB>;
+};
+
+&sdio1 {
+	clock-names = "sdio_clk","sdio_clk_source","sdio_ahb_enable";
+	clocks = <&ap_clk CLK_AP_SDIO1_2X>,
+		 <&g12_pll CLK_LPLL_409M6>,
+		 <&apapb_gate CLK_SDIO1_EB>;
+};
+
+&sdio3 {
+	clock-names = "sdio_clk","sdio_clk_source","sdio_ahb_enable";
+	clocks = <&ap_clk CLK_AP_EMMC_2X>,
+		 <&ana_g5_clk CLK_RPLL>,
+		 <&apapb_gate CLK_EMMC_EB>;
+};
+
+&ufs {
+	clock-names = "ufs_ao_eb", "ufs_ao_en", "ufs_ahb_enable",
+		      "ufs_hci_eb", "ufs_unipro_eb", "ufs_utp_eb";
+	clocks = <&aonapb_gate CLK_UFS_AO_EB>,
+		 <&aonapb_gate CLK_UFS_AO_EN>,
+		 <&apapb_gate CLK_UFS_EB>,
+		 <&apapb_gate CLK_UFS_HCI_EB>,
+		 <&apapb_gate CLK_UFS_UNIPRO_EB>,
+		 <&apapb_gate CLK_UFS_UTP_EB>;
+};
+
+&i2c0 {
+	clock-names ="enable", "i2c", "source";
+	clocks = <&apapb_gate CLK_I2C0_EB>,
+		 <&ap_clk CLK_AP_I2C0>, <&ext_26m>;
+};
+
+&i2c1 {
+	clock-names ="enable", "i2c", "source";
+	clocks = <&apapb_gate CLK_I2C1_EB>,
+		 <&ap_clk CLK_AP_I2C1>, <&ext_26m>;
+};
+
+&i2c2 {
+	clock-names ="enable", "i2c", "source";
+	clocks = <&apapb_gate CLK_I2C2_EB>,
+		 <&ap_clk CLK_AP_I2C2>, <&ext_26m>;
+};
+
+&i2c3 {
+	clock-names ="enable", "i2c", "source";
+	clocks = <&apapb_gate CLK_I2C3_EB>,
+		 <&ap_clk CLK_AP_I2C3>, <&ext_26m>;
+};
+
+&i2c4 {
+	clock-names ="enable", "i2c", "source";
+	clocks = <&apapb_gate CLK_I2C4_EB>,
+		 <&ap_clk CLK_AP_I2C4>, <&ext_26m>;
+};
+
+&spi0 {
+	clock-names = "enable", "spi", "source";
+	clocks = <&apapb_gate CLK_SPI0_EB>,
+	<&ap_clk CLK_AP_SPI0>, <&g12_pll CLK_TWPLL_192M>;
+};
+
+&spi1 {
+	clock-names = "enable", "spi", "source";
+	clocks = <&apapb_gate CLK_SPI1_EB>,
+	<&ap_clk CLK_AP_SPI1>, <&g12_pll CLK_TWPLL_192M>;
+};
+
+&spi2 {
+	clock-names = "enable", "spi", "source";
+	clocks = <&apapb_gate CLK_SPI2_EB>,
+	<&ap_clk CLK_AP_SPI2>, <&g12_pll CLK_TWPLL_192M>;
+};
+
+&spi3 {
+	clock-names = "enable", "spi", "source";
+	clocks = <&apapb_gate CLK_SPI3_EB>,
+	<&ap_clk CLK_AP_SPI3>, <&g12_pll CLK_TWPLL_192M>;
+};
+
+&gpu {
+	clocks = <&aonapb_gate CLK_GPU_EB>,
+		<&gpu_clk CLK_GPU_CORE_EB>, <&gpu_clk CLK_GPU_CORE>,
+		<&gpu_clk CLK_GPU_MEM_EB>, <&gpu_clk CLK_GPU_MEM>,
+		<&gpu_clk CLK_GPU_SYS_EB>,
+		<&g12_pll CLK_TWPLL_384M>, <&g12_pll CLK_TWPLL_512M>,
+		<&g12_pll CLK_LPLL_614M4>, <&g12_pll CLK_TWPLL_768M>,
+		<&g12_pll CLK_GPLL>;
+};
+
+&sdio0 {
+	syscons = <&aon_apb_regs REG_AON_APB_SDIO0_CTRL_REG MASK_AON_APB_SDIO0_EMMC_CARD_PRESENT_32K>,
+		  <&aon_apb_regs REG_AON_APB_SDIO0_CTRL_REG MASK_AON_APB_SDIO0_EMMC_CARD_PROTECT_32K>,
+		  <&aon_apb_regs REG_AON_APB_SDIO0_CTRL_REG MASK_AON_APB_SDIO0_EMMC_CARDDET_DBNC_EN_32K>,
+		  <&aon_apb_regs REG_AON_APB_SDIO0_CTRL_REG MASK_AON_APB_SDIO0_EMMC_CARDDET_DBNC_THD_32K>;
+	syscon-names =  "sd_detect_pol",
+			"sd_hotplug_protect_en",
+			"sd_hotplug_debounce_en",
+			"sd_hotplug_debounce_cn";
+};
+
+&uart0 {
+	clock-names = "enable", "uart", "source";
+	clocks = <&apapb_gate CLK_UART0_EB>,
+		 <&ap_clk CLK_AP_UART0>,
+		 <&ext_26m>;
+};
+
+&uart1 {
+	clock-names = "enable", "uart", "source";
+	clocks = <&apapb_gate CLK_UART1_EB>,
+		 <&ap_clk CLK_AP_UART1>,
+		 <&ext_26m>;
+};
+
+&uart2 {
+	clock-names = "enable", "uart", "source";
+	clocks = <&apapb_gate CLK_UART2_EB>,
+		 <&ap_clk CLK_AP_UART2>,
+		 <&ext_26m>;
+};
+
+&vsp {
+	clock-names = "clk_ahb_gate_vsp_eb",
+			"clk_src_256m",
+			"clk_src_307m2",
+			"clk_src_384m",
+			"clk_src_512m",
+			"clk_vsp";
+	clocks = <&apahb_gate CLK_VSP_EB>,
+			<&g12_pll CLK_TWPLL_256M>,
+			<&g12_pll CLK_TWPLL_307M2>,
+			<&g12_pll CLK_TWPLL_384M>,
+			<&g12_pll CLK_TWPLL_512M>,
+			<&ap_clk CLK_AP_VSP>;
+};
+
+&jpg {
+	clock-names = "jpg_domain_eb",
+			"jpg_dev_eb",
+			"jpg_ckg_eb",
+			"jpg_clk",
+			"clk_src_76m8",
+			"clk_src_128m",
+			"clk_src_256m",
+			"clk_src_384m";
+	clocks = <&aonapb_gate CLK_MM_EB>,
+			<&mm_gate CLK_MM_JPG_EB>,
+			<&mm_gate CLK_MM_CKG_EB>,
+			<&mm_clk CLK_JPG>,
+			<&g12_pll CLK_TWPLL_76M8>,
+			<&g12_pll CLK_TWPLL_128M>,
+			<&g12_pll CLK_TWPLL_256M>,
+			<&g12_pll CLK_TWPLL_384M>;
+};
+
+&dpu {
+	clock-names = "clk_src_128m",
+			"clk_src_153m6",
+			"clk_src_192m",
+			"clk_src_256m",
+			"clk_src_307m2",
+			"clk_src_384m",
+			"clk_dpu_core",
+			"clk_dpu_dpi",
+			"clk_ap_ahb_disp_eb";
+
+	clocks = <&g12_pll CLK_TWPLL_128M>,
+		<&g12_pll CLK_TWPLL_153M6>,
+		<&g12_pll CLK_TWPLL_192M>,
+		<&g12_pll CLK_TWPLL_256M>,
+		<&g12_pll CLK_TWPLL_307M2>,
+		<&g12_pll CLK_TWPLL_384M>,
+		<&ap_clk CLK_AP_DISPC0>,
+		<&ap_clk CLK_AP_DISPC0_DPI>,
+		<&apahb_gate CLK_DISPC_EB>;
+};
+
+&dsi {
+	clock-names = "clk_ap_ahb_dsi_eb";
+	clocks = <&apahb_gate CLK_DSI_EB>;
+};
+
+&gsp_core0 {
+	clock-names =	"clk_dpu_core_src",
+			"clk_dpu_core",
+			"clk_ap_ahb_disp_eb";
+
+	clocks =	<&g12_pll CLK_TWPLL_384M>,
+			<&ap_clk CLK_AP_DISPC0>,
+			<&apahb_gate CLK_DISPC_EB>;
+};

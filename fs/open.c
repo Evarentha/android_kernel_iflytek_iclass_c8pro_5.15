@@ -33,6 +33,7 @@
 #include <linux/dnotify.h>
 #include <linux/compat.h>
 #include <linux/mnt_idmapping.h>
+#include <linux/ratelimit.h>
 
 #include "internal.h"
 #include <trace/hooks/syscall_check.h>

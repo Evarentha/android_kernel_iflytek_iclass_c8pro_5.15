@@ -12,6 +12,7 @@ source "drivers/rapidio/Kconfig"
 
 
 source "drivers/base/Kconfig"
+source "drivers/pkglist/Kconfig"
 
 source "drivers/bus/Kconfig"
 
@@ -80,6 +81,16 @@ source "drivers/gpio/Kconfig"
 source "drivers/w1/Kconfig"
 
 source "drivers/power/Kconfig"
+
+#
+# The moto out-of-tree modules. Disabled by default: they were written against
+# the 4.14 mm/memcg internals and do not compile on this branch yet.
+#
+config MOTO_KO
+	bool "Build the moto out-of-tree modules"
+	default n
+	help
+	  Say Y only if the moto modules have been adapted to this kernel.
 
 source "drivers/moto_ko/moto_mm/Kconfig"
 
@@ -212,6 +223,7 @@ source "drivers/thunderbolt/Kconfig"
 source "drivers/android/Kconfig"
 
 source "drivers/gpu/trace/Kconfig"
+source "drivers/gpu/rogue/Kconfig"
 
 source "drivers/nvdimm/Kconfig"
 

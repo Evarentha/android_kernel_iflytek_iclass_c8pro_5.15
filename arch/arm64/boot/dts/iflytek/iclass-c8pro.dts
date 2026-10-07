@@ -1,0 +1,37 @@
+/* Copyright (C) 2026 Evarentha - Linux 5.15 board port changes. */
+/dts-v1/;
+
+#include <dt-bindings/clock/sprd,roc1-clk.h>
+
+/ {
+	interrupt-parent = <0x01>;
+	#address-cells = <0x02>;
+	#size-cells = <0x02>;
+	cpuinfo_hardware = "Unisoc UD710";
+	/* Temporary boot-visible build tag: shows in the log line
+	 * "Machine model: ..." so the flashed DTB revision is verifiable. */
+	model = "iFLYTEK iClass C8Pro";
+	compatible = "iflytek,iclass-c8pro", "sprd,ud710";
+	sprd,sc-id = <0x2c6 0x01 0x20000>;
+
+	/* U-Boot clamps this runtime request to its compiled log-level maximum. */
+	mitochodria,uboot-log-level = <0x02>;
+
+#include "iclass-c8pro/qos.dtsi"
+#include "iclass-c8pro/aliases.dtsi"
+#include "iclass-c8pro/soc.dtsi"
+#include "iclass-c8pro/audio-platform.dtsi"
+#include "iclass-c8pro/fixed-clocks.dtsi"
+#include "iclass-c8pro/multimedia-dvfs.dtsi"
+#include "iclass-c8pro/cpu.dtsi"
+#include "iclass-c8pro/power-debug.dtsi"
+#include "iclass-c8pro/platform.dtsi"
+#include "iclass-c8pro/thermal.dtsi"
+#include "iclass-c8pro/reserved-memory.dtsi"
+#include "iclass-c8pro/ion.dtsi"
+#include "iclass-c8pro/modem.dtsi"
+#include "iclass-c8pro/audio-card.dtsi"
+#include "iclass-c8pro/panels.dtsi"
+#include "iclass-c8pro/board.dtsi"
+
+};

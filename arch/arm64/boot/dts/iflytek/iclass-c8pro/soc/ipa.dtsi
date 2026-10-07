@@ -1,0 +1,80 @@
+/*
+ * iclass-c8pro hardware description; included in place from the board DTS.
+ * Copyright (C) 2026 Evarentha - Linux 5.15 board port changes.
+ */
+
+		ipa-apb {
+			compatible = "simple-bus";
+			#address-cells = <0x02>;
+			#size-cells = <0x02>;
+			ranges;
+
+			pam_ipa: pam-ipa@21140000 {
+				compatible = "sprd,pam-ipa";
+				reg = <0x00 0x21140000 0x00 0x100>;
+				reg-names = "pam-ipa-base";
+				syscons = <0x16 0x04 0x20>;
+				syscon-names = "enable";
+				power-domains = <0x17>;
+				sprd,cp-ul-intr-to-ap = <0x00>;
+				sprd,cp-ul-threshold = <0x01>;
+				sprd,cp-ul-timeout = <0x05>;
+				sprd,cp-ul-flowctrl-mode = <0x01>;
+				sprd,cp-ul-enter-flowctrl-watermark = <0x10>;
+				sprd,cp-ul-exit-flowctrl-watermark = <0x04>;
+				sprd,cp-dl-intr-to-ap = <0x00>;
+				sprd,cp-dl-threshold = <0x10>;
+				sprd,cp-dl-timeout = <0x00>;
+				sprd,cp-dl-flowctrl-mode = <0x00>;
+				sprd,cp-dl-enter-flowctrl-watermark = <0x24>;
+				sprd,cp-dl-exit-flowctrl-watermark = <0x04>;
+				sprd,pam-ipa-hw-ver = <0x01>;
+				sprd,pam-ipa-hw-mode = <0x00>;
+				phandle = <0x14e>;
+			};
+
+			ipa_local: sipa@21180000 {
+				compatible = "sprd,roc1-sipa";
+				reg = <0x00 0x21180000 0x00 0x2000 0x00 0x20b10000 0x00 0x40000>;
+				reg-names = "glb-base", "iram-base";
+				interrupts = <0x00 0x8a 0x04>;
+				interrupt-names = "local_ipa_irq";
+				syscons = <0x16 0x04 0x08 0x02 0x25c 0xff>;
+				syscon-names = "enable", "wakeup";
+				power-domains = <0x17>;
+				sprd,sipa-bypass-mode = <0x00>;
+				sprd,need-through-pcie;
+				sprd,wiap-ul-dma;
+				sprd,usb-dl-tx = <0x00 0x800>;
+				sprd,usb-dl-rx = <0x00 0x800>;
+				sprd,usb-ul-tx = <0x00 0x800>;
+				sprd,usb-ul-rx = <0x00 0x800>;
+				sprd,cp-dl-tx = <0x00 0x1000>;
+				sprd,cp-dl-rx = <0x00 0x1000>;
+				sprd,cp-ul-tx = <0x00 0x1000>;
+				sprd,cp-ul-rx = <0x00 0x1000>;
+				sprd,wifi-dl-tx = <0x01 0x80>;
+				sprd,wifi-dl-rx = <0x01 0x80>;
+				sprd,wifi-ul-tx = <0x01 0x80>;
+				sprd,wifi-ul-rx = <0x01 0x80>;
+				sprd,ap-eth-dl-tx = <0x00 0x1000>;
+				sprd,ap-eth-dl-rx = <0x00 0x1000>;
+				sprd,ap-eth-ul-tx = <0x00 0x1000>;
+				sprd,ap-eth-ul-rx = <0x00 0x1000>;
+				sprd,ap-ip-dl-tx = <0x00 0x1000>;
+				sprd,ap-ip-dl-rx = <0x00 0x1000>;
+				sprd,ap-ip-ul-tx = <0x00 0x1000>;
+				sprd,ap-ip-ul-rx = <0x00 0x1000>;
+				phandle = <0x14f>;
+			};
+
+			ipa_delegate: sipa-dele@80000000 {
+				compatible = "sprd,roc1-sipa-delegate";
+				reg = <0x00 0x80000000 0x00 0x10000000 0x00 0x2e000000 0x00 0x10000>;
+				reg-names = "mem-base", "reg-base";
+				sprd,ul-fifo-depth = <0x1000>;
+				sprd,dl-fifo-depth = <0x1000>;
+				phandle = <0x150>;
+			};
+		};
+

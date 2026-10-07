@@ -2,7 +2,10 @@
 # define_trace.h needs to know how to find our header
 CFLAGS_trace.o				:= -I$(src)
 
+# The built-in Unisoc core replaces the generic core: both define dwc3_*.
+ifneq ($(CONFIG_USB_DWC3_SPRD_CORE),y)
 obj-$(CONFIG_USB_DWC3)			+= dwc3.o
+endif
 
 dwc3-y					:= core.o
 

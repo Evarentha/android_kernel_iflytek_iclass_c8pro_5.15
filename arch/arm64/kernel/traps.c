@@ -27,6 +27,7 @@
 #include <linux/syscalls.h>
 #include <linux/mm_types.h>
 #include <linux/kasan.h>
+#include <linux/fs.h>
 
 #include <asm/atomic.h>
 #include <asm/bug.h>
